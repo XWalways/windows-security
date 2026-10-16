@@ -1,0 +1,2886 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="密码算法与分组密码工作模式图解教程：DES、AES、SM4 等算法参数，以及 ECB、CBC、CFB、OFB、CTR、PCBC 的加解密接线图、依赖与误差传播。">
+<meta name="theme-color" content="#F3F6F5">
+<title>密码算法与工作模式 · 图解教程</title>
+<style>
+:root{color-scheme:light;--bg:#f3f6f5;--surface:#e8eeee;--paper:#fafcfb;--ink:#1f3135;--muted:#536368;--line:#ccd6d5;--accent:#226b63;--wash:#dbece7;--inverse:#fafcfb;--dim:#6a7c7d;--radius:6px;--font:"Avenir Next","PingFang SC","Microsoft YaHei",system-ui,sans-serif;--mono:Menlo,Consolas,"Liberation Mono",monospace}
+
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){color-scheme:dark;--bg:#172326;--surface:#203135;--paper:#1b2a2d;--ink:#e5eeeb;--muted:#afc2bd;--line:#435a59;--accent:#92c9b9;--wash:#294b43;--inverse:#172326;--dim:#9bb0a9}
+}
+
+:root[data-theme=dark]{color-scheme:dark;--bg:#172326;--surface:#203135;--paper:#1b2a2d;--ink:#e5eeeb;--muted:#afc2bd;--line:#435a59;--accent:#92c9b9;--wash:#294b43;--inverse:#172326;--dim:#9bb0a9}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:110px}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.8;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-underline-offset:4px}
+button,input,select{font:inherit}
+button,select{cursor:pointer}
+button{white-space:nowrap}
+button:active{transform:translateY(1px)}
+a:focus-visible,button:focus-visible,input:focus-visible,summary:focus-visible,select:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--accent);outline-offset:5px}
+button:disabled{cursor:default;opacity:.42;transform:none}
+::selection{background:var(--accent);color:var(--inverse)}
+h1,h2,h3,h4,p,figure{margin:0}
+h1,h2,h3,h4{line-height:1.3}
+h1{font-size:clamp(42px,4.7vw,70px);font-weight:650;letter-spacing:-.055em}
+h1 span{display:block}
+h2{font-size:clamp(29px,3vw,40px);font-weight:600;letter-spacing:-.04em}
+h3{font-size:24px;letter-spacing:-.025em}
+h4{font-size:18px}
+p+p{margin-top:14px}
+small,.small{font-size:13px}
+.mono,code,.formula{font-family:var(--mono)}
+code{font-size:.88em}
+strong{font-weight:650}
+a:hover{color:var(--accent)}
+.muted{color:var(--muted)}
+.accent{color:var(--accent)}
+.skip{position:fixed;top:-100px;left:20px;z-index:5;background:var(--ink);color:var(--bg);padding:10px 20px}
+.skip:focus{top:10px}
+/* Layers: 1 sticky header, 2 mobile navigation. */
+.topbar{height:74px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:1;display:flex;align-items:center;justify-content:space-between;padding:0 38px;gap:24px}
+.identity{display:flex;gap:15px;align-items:center;text-decoration:none;font-size:15px;font-weight:600}
+.mark{width:32px;height:32px;border:1.5px solid var(--accent);color:var(--accent);display:grid;place-items:center;font-size:18px;line-height:1;border-radius:var(--radius)}
+.top-title{color:var(--muted);font-size:13px;letter-spacing:.03em}
+.top-actions{display:flex;align-items:center;gap:20px}
+.text-button{background:none;color:var(--ink);border:0;padding:6px 0;font-size:13px}
+.theme-label{font-size:13px;display:flex;align-items:center;gap:8px}
+.theme-label select{border:0;border-bottom:1px solid var(--line);border-radius:0;background:var(--bg);color:var(--ink);font-size:13px;padding:5px 2px}
+.frame{display:grid;grid-template-columns:186px minmax(0,1fr);gap:48px;max-width:1480px;padding:0 38px;margin:auto}
+.sidebar{align-self:start;position:sticky;top:112px;padding:34px 0 20px}
+.sidebar-head{font-size:12px;color:var(--muted);margin-bottom:20px}
+.sidebar nav{display:grid;gap:4px}
+.sidebar nav a{text-decoration:none;padding:9px 13px;border-left:2px solid transparent;font-size:14px;color:var(--muted)}
+.sidebar nav a:hover,.sidebar nav a[aria-current=true]{color:var(--accent);border-color:var(--accent);background:var(--wash)}
+.sidebar-note{font-size:12px;color:var(--muted);margin-top:35px;padding:18px 12px 0;border-top:1px solid var(--line)}
+.sidebar-note a{display:inline-block;margin-top:12px}
+.mobile-nav{display:none}
+.main{min-width:0}
+.hero{display:grid;grid-template-columns:1fr 1.08fr;gap:30px;align-items:center;min-height:480px;padding:50px 0 46px;border-bottom:1px solid var(--line)}
+.hero-copy p{color:var(--muted);margin:24px 0 28px;max-width:27em;font-size:16px}
+.link-button{display:inline-flex;gap:24px;align-items:center;background:var(--accent);color:var(--inverse);border:1px solid var(--accent);text-decoration:none;border-radius:var(--radius);padding:11px 17px;font-size:14px;font-weight:600}
+.link-button:hover{color:var(--inverse);filter:brightness(.92)}
+.hero-figure{background:var(--surface);padding:26px 22px 20px;border-radius:var(--radius)}
+.hero-figure svg{display:block;width:100%;height:auto}
+.hero-figure figcaption{font-size:12px;color:var(--muted);margin-top:14px;text-align:center}
+.section{padding:72px 0;border-bottom:1px solid var(--line);scroll-margin-top:100px}
+.section-intro{color:var(--muted);max-width:46em;margin:16px 0 30px}
+.lead-statement{font-size:20px;line-height:1.7;max-width:36em;margin:26px 0 32px}
+.concept-grid{display:grid;grid-template-columns:1fr 1fr;gap:28px 40px}
+.concept{border-top:2px solid var(--line);padding-top:17px}
+.concept code{color:var(--accent);display:inline-block;margin-bottom:8px;font-size:12px}
+.concept p{color:var(--muted);font-size:14px;margin-top:10px}
+.purpose-list{margin-top:32px;display:grid;grid-template-columns:repeat(4,1fr);background:var(--surface);border-radius:var(--radius);padding:24px;gap:24px}
+.purpose-list p{font-size:13px;color:var(--muted);margin-top:10px}
+.purpose-list strong{font-size:14px}
+.section-note,.note{border-left:3px solid var(--accent);padding:12px 18px;background:var(--wash);font-size:14px;margin-top:25px}
+.category-nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.chip{border:1px solid var(--line);border-radius:var(--radius);background:transparent;color:var(--muted);padding:7px 13px;font-size:13px}
+.chip[aria-pressed=true]{background:var(--accent);color:var(--inverse);border-color:var(--accent)}
+.algorithm-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 32px}
+.algorithm{padding:25px 0;border-top:1px solid var(--line)}
+.algorithm.wide{grid-column:1/-1}
+.algo-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.algo-top h3{font-size:22px}
+.algo-top .status{font-size:12px;color:var(--accent)}
+.algorithm p{color:var(--muted);font-size:14px;margin-top:12px}
+.algorithm dl{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:18px 0 0}
+.algorithm dt{font-size:12px;color:var(--muted)}
+.algorithm dd{font-family:var(--mono);font-size:14px;line-height:1.6;margin:5px 0 0}
+.algorithm .micro-note{font-size:12px;color:var(--muted);margin-top:15px}
+.algorithm[hidden],.category-panel[hidden]{display:none}
+.des-round{background:var(--surface);padding:26px;margin-top:30px;border-radius:var(--radius)}
+.des-round h3{font-size:19px;margin-bottom:10px}
+.des-round p{font-size:13px;color:var(--muted)}
+.diagram-scroll{overflow-x:auto;overscroll-behavior-x:contain;border-radius:var(--radius)}
+.diagram-scroll svg{display:block;width:100%;min-width:730px;height:auto}
+.des-round svg{min-width:850px}
+.svg-diagram text,.hero-figure text{fill:var(--ink);text-anchor:middle;font-family:var(--mono);font-size:18px}
+.svg-diagram .sub,.hero-figure .sub{font-size:10px;fill:var(--muted)}
+.node rect{fill:var(--paper);stroke:var(--line);stroke-width:1.4}
+.node.engine rect{fill:var(--accent);stroke:var(--accent)}
+.node.engine text,.hero-figure .engine text{fill:var(--inverse)}
+.node.engine .sub{fill:var(--inverse);opacity:.85}
+.node.output rect,.node.stream rect{fill:var(--wash);stroke:var(--accent)}
+.wire{stroke:var(--ink);stroke-width:1.5;fill:none}
+.wire.feedback{stroke:var(--accent);stroke-dasharray:5 4}
+.xor circle{fill:var(--paper);stroke:var(--ink);stroke-width:1.4}
+.xor text{font-size:23px}
+.svg-diagram .wire-label{font-family:var(--font);font-size:11px;fill:var(--muted)}
+.arrow{fill:var(--ink)}
+.mode-nav{display:flex;gap:0;border-bottom:1px solid var(--line);margin-top:32px}
+.mode-tab{flex:1;background:transparent;border:0;border-bottom:3px solid transparent;padding:15px 8px;color:var(--muted);font-family:var(--mono);font-size:16px}
+.mode-tab[aria-selected=true]{border-color:var(--accent);color:var(--accent);background:var(--wash)}
+.mode-panel{margin-top:30px}
+.js .mode-panel[hidden]{display:none}
+.mode-heading{display:flex;align-items:center;gap:16px;margin-bottom:12px}
+.mode-heading .mode-name{font-family:var(--mono);font-size:36px;color:var(--accent);font-weight:500;line-height:1.2}
+.mode-heading h3{font-size:20px}
+.mode-heading .en{font-size:12px;color:var(--muted);margin-top:4px}
+.mode-summary{max-width:48em;color:var(--muted);font-size:15px;margin-bottom:22px}
+.direction-switch{display:flex;gap:4px;align-items:center}
+.direction-switch button{padding:6px 18px;border:1px solid var(--line);color:var(--muted);background:transparent;border-radius:var(--radius);font-size:13px}
+.direction-switch button[aria-pressed=true]{color:var(--inverse);background:var(--accent);border-color:var(--accent)}
+.diagram-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--surface);padding:15px 20px;border-radius:6px 6px 0 0}
+.diagram-legend{font-size:12px;color:var(--muted)}
+.mode-figure{background:var(--surface);padding:0 20px 15px;border-radius:0 0 6px 6px}
+.mode-figure figcaption{font-size:12px;color:var(--muted);padding:4px 0}
+.mode-figure figcaption strong{color:var(--ink)}
+.formula{font-size:14px;background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:14px 18px;line-height:1.7;margin-top:14px;overflow-wrap:anywhere}
+.trace-controls{display:flex;align-items:center;gap:8px;margin-top:18px}
+.trace-controls button{background:var(--paper);border:1px solid var(--line);color:var(--ink);padding:6px 13px;border-radius:var(--radius);font-size:13px}
+.trace-controls .step-counter{font:12px var(--mono);color:var(--muted);margin-left:auto}
+.trace-note{min-height:68px;margin-top:14px;font-size:14px;line-height:1.8;color:var(--muted)}
+.trace-note strong{color:var(--accent)}
+.mode-facts{display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;margin:20px 0}
+.mode-facts dt{font-size:12px;color:var(--muted);margin-bottom:7px}
+.mode-facts dd{margin:0;font-size:14px}
+.mode-warning{font-size:13px;color:var(--muted);border-top:1px solid var(--line);padding-top:18px}
+.mode-warning strong{color:var(--ink)}
+.is-tracing [data-step]{opacity:.18}
+.is-tracing [data-step].is-active{opacity:1}
+.is-tracing .is-active rect,.is-tracing .is-active circle{stroke:var(--accent);stroke-width:2.5}
+.is-tracing path.is-active{stroke:var(--accent);stroke-width:2.5}
+.mode-figure[hidden]{display:none}
+.table-scroll{overflow-x:auto;margin-top:26px}
+.comparison{border-collapse:collapse;width:100%;font-size:13px;min-width:760px;text-align:left}
+.comparison th{font-weight:600;background:var(--surface);padding:14px 12px}
+.comparison td{padding:15px 12px;vertical-align:top}
+.comparison tr+tr td{border-top:1px solid var(--line)}
+.comparison th:first-child{min-width:96px}
+.comparison .mode-col{font-family:var(--mono);color:var(--accent);font-weight:600}
+.error-study{margin-top:40px;display:grid;grid-template-columns:1fr 1.2fr;gap:35px;align-items:start}
+.error-study h3{margin-bottom:14px}
+.error-study p{font-size:14px;color:var(--muted)}
+.error-key{display:grid;gap:8px;margin-top:20px;font-size:12px}
+.sample{display:inline-flex;width:25px;height:20px;border-radius:3px;vertical-align:middle;margin-right:8px;align-items:center;justify-content:center}
+.sample.same{border:1px solid var(--line)}
+.sample.flip{border:1px solid var(--accent);color:var(--accent)}
+.sample.full{background:var(--accent);color:var(--inverse)}
+.error-matrix{background:var(--surface);padding:20px;border-radius:var(--radius)}
+.error-row{display:grid;grid-template-columns:60px repeat(5,1fr);gap:7px;align-items:center;margin-bottom:13px}
+.error-row:last-child{margin:0}
+.error-row .name{font:12px var(--mono);color:var(--muted)}
+.error-block{border:1px solid var(--line);border-radius:3px;display:grid;place-items:center;height:34px;font:11px var(--mono)}
+.error-block.flip{border:2px solid var(--accent);color:var(--accent)}
+.error-block.full{background:var(--accent);border-color:var(--accent);color:var(--inverse);background-image:repeating-linear-gradient(135deg,transparent,transparent 5px,rgba(255,255,255,.10) 5px,rgba(255,255,255,.10) 6px)}
+.auth-note{margin-top:30px;padding:23px;background:var(--wash);border-radius:var(--radius)}
+.auth-note h3{font-size:19px;margin-bottom:10px}
+.auth-note p{font-size:14px}
+.gm-list{display:grid;grid-template-columns:1fr 1fr;gap:24px 35px}
+.gm-item{display:grid;grid-template-columns:65px 1fr;gap:14px;border-top:1px solid var(--line);padding-top:20px}
+.gm-item>strong{font:22px var(--mono);color:var(--accent)}
+.gm-item p{font-size:13px;color:var(--muted);margin-top:6px}
+.gm-item h3{font-size:16px}
+.padding-lab{display:grid;grid-template-columns:1fr 1.1fr;gap:30px;background:var(--surface);padding:28px;border-radius:var(--radius);align-items:center}
+.padding-lab label{display:block;font-size:14px;font-weight:600;margin-bottom:12px}
+.padding-lab input{width:100%;accent-color:var(--accent)}
+.padding-lab output{font:26px var(--mono);color:var(--accent)}
+.padding-lab p{font-size:13px;color:var(--muted);margin-top:12px}
+.byte-groups{display:grid;gap:9px}
+.byte-group{display:grid;grid-template-columns:repeat(8,1fr);gap:5px}
+.byte{height:34px;display:grid;place-items:center;background:var(--paper);border:1px solid var(--line);border-radius:3px;font:12px var(--mono)}
+.byte.pad{background:var(--accent);border-color:var(--accent);color:var(--inverse)}
+.pad-static{font-size:14px;margin-top:22px}
+.padding-rules{display:grid;grid-template-columns:1fr 1fr;gap:22px 32px;margin-top:28px}
+.padding-rules h3{font-size:15px}
+.padding-rules p{color:var(--muted);font-size:13px;margin-top:8px}
+.search-row{display:flex;align-items:end;gap:18px;margin-top:27px}
+.search-field{flex:1}
+.search-field label{display:block;font-size:13px;margin-bottom:8px}
+.search-field input{width:100%;border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:12px 14px;border-radius:var(--radius);font-size:15px}
+.search-field input::placeholder{color:var(--muted)}
+.search-help{font-size:12px;color:var(--muted);margin-top:9px}
+.search-count{font:12px var(--mono);color:var(--muted);white-space:nowrap;margin-bottom:14px}
+.quick-table{min-width:740px}
+.quick-table th{white-space:nowrap}
+.quick-table td:nth-child(1){font-family:var(--mono);font-weight:600}
+.empty{background:var(--surface);padding:28px;margin-top:20px;border-radius:var(--radius)}
+.empty strong{display:block;font-size:18px}
+.empty p{font-size:14px;color:var(--muted);margin-top:8px}
+.sources{font-size:14px}
+.sources details{margin-top:14px;border-top:1px solid var(--line);padding-top:15px}
+.sources summary{cursor:pointer;font-weight:600}
+.sources details p{color:var(--muted);font-size:13px;margin-top:12px;max-width:58em}
+.source-links{display:grid;gap:12px;margin-top:25px}
+.source-links a{color:var(--accent);font-size:13px}
+.footer{display:flex;justify-content:space-between;gap:24px;padding:30px 0 40px;color:var(--muted);font-size:12px}
+.js-only{display:none}
+.js .js-only{display:flex}
+.js .padding-controls{display:block}
+noscript .note{margin:15px 0}
+.no-js-note{display:none}
+
+@media(min-width:1600px){.frame{gap:70px}
+.hero{min-height:540px}
+}
+
+@media(max-width:1100px){.frame{grid-template-columns:155px minmax(0,1fr);gap:30px;padding:0 26px}
+.topbar{padding:0 26px}
+.hero{grid-template-columns:1fr 1fr;gap:20px;min-height:420px}
+.hero h1{font-size:44px}
+.hero-copy p{font-size:14px}
+.hero-figure{padding:20px 10px}
+.purpose-list{grid-template-columns:1fr 1fr}
+.mode-facts{grid-template-columns:1fr 1fr}
+.mode-facts>div:last-child{grid-column:1/-1}
+.error-study{grid-template-columns:1fr}
+.padding-lab{grid-template-columns:1fr}
+.top-title{display:none}
+}
+
+@media(max-width:767px){html{scroll-padding-top:130px}
+.topbar{height:64px;padding:0 18px;gap:12px}
+.identity{font-size:13px;gap:10px}
+.mark{width:29px;height:29px;font-size:16px}
+.top-actions{gap:12px}
+.top-actions .print-action,.theme-label>span{display:none}
+.theme-label select{max-width:90px}
+.frame{display:block;padding:0 20px}
+.sidebar{display:none}
+.mobile-nav{display:block;position:sticky;top:64px;z-index:2;background:var(--bg);border-bottom:1px solid var(--line);padding:0 20px;font-size:13px}
+.mobile-nav summary{padding:10px 0;cursor:pointer;color:var(--accent)}
+.mobile-nav nav{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:12px 0 18px}
+.mobile-nav a{text-decoration:none}
+.hero{grid-template-columns:1fr;padding:35px 0;gap:32px;min-height:0}
+.hero h1{font-size:44px;letter-spacing:-.055em}
+.hero h1 span{display:block}
+.hero-copy p{max-width:29em;margin:18px 0 22px;font-size:15px}
+.hero-figure{padding:22px 20px}
+.hero-figure svg{max-height:250px}
+.section{padding:44px 0;scroll-margin-top:125px}
+.section-intro{font-size:14px;margin-bottom:25px}
+.lead-statement{font-size:18px}
+.concept-grid{grid-template-columns:1fr;gap:24px}
+.purpose-list{grid-template-columns:1fr 1fr;padding:20px;gap:24px 18px}
+.algorithm-grid{grid-template-columns:1fr}
+.algorithm.wide{grid-column:auto}
+.algo-top{align-items:center}
+.algorithm dl{gap:15px}
+.des-round{padding:20px 15px}
+.mode-nav{overflow-x:auto}
+.mode-tab{font-size:14px;min-width:55px;padding:13px 4px}
+.mode-heading{gap:12px}
+.mode-heading .mode-name{font-size:31px}
+.mode-heading h3{font-size:18px}
+.mode-heading .en{font-size:11px}
+.diagram-toolbar{padding:12px;flex-wrap:wrap}
+.diagram-legend{font-size:11px}
+.mode-figure{padding:0 10px 12px}
+.trace-controls{gap:6px;flex-wrap:wrap}
+.trace-controls button{font-size:12px;padding:6px 10px}
+.trace-note{min-height:105px;font-size:13px}
+.mode-facts{grid-template-columns:1fr;gap:18px}
+.mode-facts>div:last-child{grid-column:auto}
+.formula{font-size:12px;padding:12px}
+.gm-list{grid-template-columns:1fr}
+.error-study{gap:22px}
+.error-matrix{padding:18px 12px}
+.error-row{grid-template-columns:45px repeat(5,1fr);gap:5px}
+.error-block{font-size:10px;height:30px}
+.padding-lab{padding:22px 18px}
+.padding-rules{grid-template-columns:1fr}
+.search-row{gap:12px}
+.search-field input{font-size:14px}
+.search-count{font-size:11px}
+.footer{display:block}
+.footer p+p{margin-top:10px}
+.auth-note{padding:20px}
+.source-links a{overflow-wrap:anywhere}
+}
+
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}
+*,*::before,*::after{transition:none!important;animation:none!important}
+}
+
+@media print{html{color-scheme:light!important}
+body{font-size:10pt;--bg:#fff;--paper:#fff;--surface:#f0f3f2;--ink:#1f3135;--muted:#435659;--line:#b9c8c5;--accent:#226b63;--wash:#e3eee9;--inverse:#fff}
+body,.topbar{background:#fff!important}
+.topbar,.sidebar,.mobile-nav,.js-only,.category-nav,.mode-nav,.diagram-toolbar,.search-row,.search-help,.link-button,.padding-controls,.skip{display:none!important}
+.frame{display:block;padding:0;max-width:none}
+.hero{min-height:0;padding:15px 0 25px;grid-template-columns:1fr 1fr}
+.hero h1{font-size:32pt}
+.hero-copy p{font-size:11pt}
+.hero-figure{padding:15px}
+.section{padding:25px 0;break-before:auto}
+.section h2{font-size:22pt}
+.section-intro{font-size:10pt}
+.js .mode-panel[hidden],.algorithm[hidden],.category-panel[hidden],.mode-figure[hidden],.quick-table tr[hidden]{display:block!important}
+.algorithm[hidden]{display:block!important}
+.quick-table tr[hidden]{display:table-row!important}
+.mode-panel{break-before:page}
+.mode-figure{break-inside:avoid;margin-top:15px}
+.mode-figure svg,.diagram-scroll svg{min-width:0!important;width:100%}
+.diagram-scroll,.table-scroll{overflow:visible}
+.is-tracing [data-step]{opacity:1!important}
+.concept-grid,.algorithm-grid,.gm-list{gap:15px 25px}
+.purpose-list{padding:15px}
+.mode-facts{font-size:10pt}
+.trace-note,.trace-controls,.empty{display:none!important}
+.comparison{min-width:0!important;font-size:8pt}
+.comparison td,.comparison th{padding:8px 6px}
+.formula{font-size:9pt}
+.algorithm,.gm-item,.des-round,.padding-lab,.auth-note{break-inside:avoid}
+.node.engine rect,.sample.full,.error-block.full,.byte.pad{print-color-adjust:exact;-webkit-print-color-adjust:exact}
+.footer{padding-bottom:0}
+.sources details{display:block}
+.sources details::details-content{content-visibility:visible!important}
+.source-links{gap:6px}
+a{overflow-wrap:anywhere}
+.no-js-note{display:block}
+}
+
+
+.js .trace-note{display:block}
+
+@media print{.mode-panel{margin-top:0}
+.mode-heading{margin-bottom:8px}
+.mode-heading .mode-name{font-size:25pt}
+.mode-heading h3{font-size:14pt}
+.mode-heading .en{font-size:8pt}
+.mode-summary{font-size:9pt;line-height:1.5;margin-bottom:8px}
+.mode-figure{padding:0 8px 8px;margin-top:8px}
+.mode-figure svg{height:245px}
+.mode-figure figcaption{font-size:7.5pt;line-height:1.5;padding:3px 0}
+.mode-figure .formula{font-size:8.5pt;padding:6px 10px;margin-top:5px}
+.mode-facts{grid-template-columns:1fr 1fr 1fr;gap:12px;margin:12px 0;break-inside:avoid}
+.mode-facts dt{font-size:8pt;margin-bottom:3px}
+.mode-facts dd{font-size:9pt;line-height:1.5}
+.mode-facts>div:last-child{grid-column:auto}
+.mode-warning{font-size:8.5pt;line-height:1.5;padding-top:8px}
+.table-scroll[hidden]{display:block!important}
+.footer{display:none}
+.section h2{break-after:avoid}
+.concept{break-inside:avoid}
+}
+
+</style>
+</head>
+<body>
+<svg width="0" height="0" aria-hidden="true" style="position:absolute;overflow:hidden">
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path class="arrow" d="M0 0 L10 5 L0 10 Z"/>
+</marker>
+</defs>
+</svg>
+<a class="skip" href="#content">跳到正文</a>
+<header class="topbar">
+<a class="identity" href="#content">
+<span class="mark" aria-hidden="true">密</span>
+<span>密码算法与工作模式</span>
+</a>
+<span class="top-title">图解教程 / 课程学习与复习</span>
+<div class="top-actions js-only">
+<button class="text-button print-action" type="button" id="print">打印教程</button>
+<label class="theme-label">
+<span>外观</span>
+<select id="theme" aria-label="页面外观">
+<option value="system">跟随系统</option>
+<option value="light">浅色</option>
+<option value="dark">深色</option>
+</select>
+</label>
+</div>
+</header>
+<details class="mobile-nav">
+<summary>课程目录</summary>
+<nav aria-label="移动端课程目录">
+<a href="#concepts">理解核心概念</a>
+<a href="#algorithms">辨认密码算法</a>
+<a href="#modes">追踪六种模式</a>
+<a href="#compare">比较依赖与误差</a>
+<a href="#guomi">国密算法对照</a>
+<a href="#padding">理解填充规则</a>
+<a href="#reference">查阅关键参数</a>
+<a href="#sources">勘误与参考</a>
+</nav>
+</details>
+<div class="frame">
+<aside class="sidebar">
+<p class="sidebar-head">阅读路径</p>
+<nav aria-label="课程目录">
+<a href="#concepts">理解核心概念</a>
+<a href="#algorithms">辨认密码算法</a>
+<a href="#modes">追踪六种模式</a>
+<a href="#compare">比较依赖与误差</a>
+<a href="#guomi">国密算法对照</a>
+<a href="#padding">理解填充规则</a>
+<a href="#reference">查阅关键参数</a>
+<a href="#sources">勘误与参考</a>
+</nav>
+<div class="sidebar-note">先分清算法与模式，<br>再沿箭头理解反馈。<br>
+<a href="密码算法与工作模式调研报告.md">查看原始报告 ↗</a>
+</div>
+</aside>
+<main class="main" id="content">
+<section class="hero" aria-labelledby="page-title">
+<div class="hero-copy">
+<h1 id="page-title">
+<span>密码算法与</span>
+<span>工作模式</span>
+</h1>
+<p>算法处理一个分组，<br>模式组织整条消息。</p>
+<a class="link-button" href="#modes">阅读模式图解 <span aria-hidden="true">↗</span>
+</a>
+</div>
+<figure class="hero-figure">
+<svg viewBox="0 0 420 270" role="img" aria-labelledby="hero-title hero-desc">
+<title id="hero-title">从单个分组到整条消息</title>
+<desc id="hero-desc">CBC 的两个分组：P1 与 IV 异或后加密得到 C1；P2 与 C1 异或后加密得到 C2。模式决定分组之间的依赖。</desc>
+<g class="node " data-step="0">
+<rect x="78.0" y="15" width="74" height="32" rx="5"/>
+<text x="115" y="36.0">P₁</text>
+</g>
+<path class="wire " data-step="0" d="M115 47 V72" marker-end="url(#arrow)"/>
+<g class="xor" data-step="0">
+<circle cx="115" cy="87" r="15"/>
+<text x="115" y="93">⊕</text>
+</g>
+<path class="wire " data-step="0" d="M115 102 V125" marker-end="url(#arrow)"/>
+<g class="node engine" data-step="0">
+<rect x="70.0" y="125" width="90" height="55" rx="5"/>
+<text x="115" y="149.5">E_K</text>
+<text class="sub" x="115" y="167.5">64 bit</text>
+</g>
+<path class="wire " data-step="0" d="M115 180 V210" marker-end="url(#arrow)"/>
+<g class="node output" data-step="0">
+<rect x="78.0" y="210" width="74" height="32" rx="5"/>
+<text x="115" y="231.0">C₁</text>
+</g>
+<g class="node " data-step="0">
+<rect x="268.0" y="15" width="74" height="32" rx="5"/>
+<text x="305" y="36.0">P₂</text>
+</g>
+<path class="wire " data-step="0" d="M305 47 V72" marker-end="url(#arrow)"/>
+<g class="xor" data-step="0">
+<circle cx="305" cy="87" r="15"/>
+<text x="305" y="93">⊕</text>
+</g>
+<path class="wire " data-step="0" d="M305 102 V125" marker-end="url(#arrow)"/>
+<g class="node engine" data-step="0">
+<rect x="260.0" y="125" width="90" height="55" rx="5"/>
+<text x="305" y="149.5">E_K</text>
+<text class="sub" x="305" y="167.5">64 bit</text>
+</g>
+<path class="wire " data-step="0" d="M305 180 V210" marker-end="url(#arrow)"/>
+<g class="node output" data-step="0">
+<rect x="268.0" y="210" width="74" height="32" rx="5"/>
+<text x="305" y="231.0">C₂</text>
+</g>
+<g class="node " data-step="0">
+<rect x="7.5" y="71" width="45" height="32" rx="5"/>
+<text x="30" y="92.0">IV</text>
+</g>
+<path class="wire feedback" data-step="0" d="M52.5 87 H100" marker-end="url(#arrow)"/>
+<path class="wire feedback" data-step="0" d="M115 242 V260 H210 V87 H290" marker-end="url(#arrow)"/>
+</svg>
+<figcaption>CBC 中，上一块密文参与下一块加密。</figcaption>
+</figure>
+</section>
+<noscript>
+<p class="note">当前为静态阅读模式：全部内容与十二张图示均可查看。启用 JavaScript 后可使用单步追踪、参数搜索和填充演示。</p>
+</noscript>
+<section class="section" id="concepts">
+<h2>先分清，什么在变。</h2>
+<p class="lead-statement">密钥、分组、轮密钥、输出长度，描述的是不同的事情。看到一个位数，先问它属于哪一项。</p>
+<div class="concept-grid">
+<article class="concept">
+<code>KEY LENGTH</code>
+<h3>密钥长度</h3>
+<p>秘密参数的长度。DES 用 64 位存放密钥，其中 8 位用于校验，真正参与运算的有效密钥为 56 位。密钥长度也不能跨算法直接比较安全强度。</p>
+</article>
+<article class="concept">
+<code>BLOCK SIZE</code>
+<h3>分组长度</h3>
+<p>一次分组变换处理多少位。DES 一次处理 64 位，AES 和 SM4 一次处理 128 位。AES-256 的分组依然是 128 位。</p>
+</article>
+<article class="concept">
+<code>ROUND KEY</code>
+<h3>轮密钥长度</h3>
+<p>主密钥通过密钥扩展生成每轮使用的参数。DES 每轮使用 48 位轮密钥，共 16 轮；这些轮密钥不意味着多出 768 位独立秘密。</p>
+</article>
+<article class="concept">
+<code>OUTPUT LENGTH</code>
+<h3>输出长度</h3>
+<p>一次分组变换的输出与分组等长。整条消息的密文还可能带填充、IV 和认证标签。哈希输出是摘要长度，签名输出取决于方案与编码。</p>
+</article>
+</div>
+<div class="purpose-list">
+<div>
+<strong>加密 → 恢复消息</strong>
+<p>持有合适密钥的人可解密。目标是保密。</p>
+</div>
+<div>
+<strong>哈希 → 计算摘要</strong>
+<p>没有“解密”操作。普通摘要不能证明消息来自谁。</p>
+</div>
+<div>
+<strong>签名 → 公钥验证</strong>
+<p>私钥签名、公钥验证。消息通常不因此被隐藏。</p>
+</div>
+<div>
+<strong>MAC → 共享密钥认证</strong>
+<p>双方用共享秘密检测篡改。HMAC 属于 MAC。</p>
+</div>
+</div>
+</section>
+<section class="section" id="algorithms">
+<h2>算法决定一次变换。</h2>
+<p class="section-intro">先辨认任务类型，再记关键参数。分组密码的输出块大小、流密码的消息长度、公钥算法的编码长度，不能放在同一个概念里比较。</p>
+<div class="category-nav js-only" aria-label="算法分类">
+<button class="chip" data-category-filter="全部" aria-pressed="true" type="button">全部</button>
+<button class="chip" data-category-filter="分组密码" aria-pressed="false" type="button">分组密码</button>
+<button class="chip" data-category-filter="流密码" aria-pressed="false" type="button">流密码</button>
+<button class="chip" data-category-filter="非对称密码" aria-pressed="false" type="button">非对称密码</button>
+<button class="chip" data-category-filter="哈希" aria-pressed="false" type="button">哈希</button>
+</div>
+<div class="algorithm-grid">
+<article class="algorithm" data-category="分组密码">
+<div class="algo-top">
+<h3>DES</h3>
+<span class="status">教学 / 历史算法</span>
+</div>
+<p>有效密钥 56 bit，64 bit 分组。16 轮 Feistel 网络，加解密共用结构，解密逆序使用轮密钥。</p>
+<dl>
+<div>
+<dt>密钥</dt>
+<dd>64 bit，含 8 bit 校验</dd>
+</div>
+<div>
+<dt>轮密钥</dt>
+<dd>48 bit × 16</dd>
+</div>
+</dl>
+<p class="micro-note">DES 的输出块仍为 64 bit。密钥位数、轮密钥位数和分组位数是三个不同参数。</p>
+</article>
+<article class="algorithm" data-category="分组密码">
+<div class="algo-top">
+<h3>3DES / TDEA</h3>
+<span class="status">历史兼容</span>
+</div>
+<p>对一个 64 bit 分组执行三次 DES：E_K₃(D_K₂(E_K₁(P)))。三密钥版本的 168 bit 密钥材料不等于 168 bit 安全强度。</p>
+<dl>
+<div>
+<dt>分组 / 强度</dt>
+<dd>64 bit / 约 112 bit</dd>
+</div>
+<div>
+<dt>密钥选项</dt>
+<dd>168 / 112 / 56 bit</dd>
+</div>
+</dl>
+<p class="micro-note">NIST 自 2024 年起不再允许施加新的 TDEA 保护，历史数据解密等有例外。64 bit 分组也限制单密钥数据量。</p>
+</article>
+<article class="algorithm" data-category="分组密码">
+<div class="algo-top">
+<h3>AES</h3>
+<span class="status">现代分组密码</span>
+</div>
+<p>128 bit 分组始终不变。密钥长度决定轮数，轮内使用字节代换、行移位、列混合和轮密钥加；末轮省略列混合。</p>
+<dl>
+<div>
+<dt>密钥 / 轮数</dt>
+<dd>128/192/256 bit → 10/12/14 轮</dd>
+</div>
+<div>
+<dt>轮密钥</dt>
+<dd>128 bit × 11/13/15 组</dd>
+</div>
+</dl>
+<p class="micro-note">轮密钥组数包含初始 AddRoundKey。现代应用通常在经过认证的协议或 AEAD 方案中使用 AES。</p>
+</article>
+<article class="algorithm" data-category="分组密码">
+<div class="algo-top">
+<h3>IDEA</h3>
+<span class="status">理解混合运算</span>
+</div>
+<p>128 bit 密钥，64 bit 分组；8 个完整轮与一个输出变换。混合异或、模 2¹⁶ 加法和模 (2¹⁶+1) 乘法。</p>
+<dl>
+<div>
+<dt>轮密钥</dt>
+<dd>16 bit × 52</dd>
+</div>
+<div>
+<dt>分组 / 输出</dt>
+<dd>64 bit / 64 bit</dd>
+</div>
+</dl>
+<p class="micro-note">52 = 8 × 6 + 4。特殊乘法将全零 16 bit 字解释为 2¹⁶，而不是直接当作普通零相乘。</p>
+</article>
+<article class="algorithm" data-category="分组密码">
+<div class="algo-top">
+<h3>SM4</h3>
+<span class="status">国密分组算法</span>
+</div>
+<p>128 bit 密钥与 128 bit 分组，32 轮迭代。每轮使用一个 32 bit 轮密钥；解密时逆序使用。</p>
+<dl>
+<div>
+<dt>密钥 / 分组</dt>
+<dd>128 bit / 128 bit</dd>
+</div>
+<div>
+<dt>轮密钥</dt>
+<dd>32 bit × 32</dd>
+</div>
+</dl>
+<p class="micro-note">公开算法，可软硬件实现。分组长度与 AES 相同，不代表内部结构相同。</p>
+</article>
+<article class="algorithm" data-category="流密码">
+<div class="algo-top">
+<h3>RC4</h3>
+<span class="status">历史算法</span>
+</div>
+<p>内部维护 256 字节置换表，逐字节产生密钥流。算法本身没有独立 IV 输入，协议层拼接密钥不能消除其统计偏差。</p>
+<dl>
+<div>
+<dt>密钥材料</dt>
+<dd>1-256 B，历史常见 40/128 bit</dd>
+</div>
+<div>
+<dt>输出</dt>
+<dd>与明文等长</dd>
+</div>
+</dl>
+<p class="micro-note">TLS 已禁止 RC4。原报告“40-2048 位”不是完整可变密钥范围；也不能将内部状态位数等同于安全强度。</p>
+</article>
+<article class="algorithm" data-category="流密码">
+<div class="algo-top">
+<h3>ZUC</h3>
+<span class="status">国密通信算法</span>
+</div>
+<p>通过线性反馈移位寄存器、比特重组和非线性函数生成密钥流。ZUC-128 用于 LTE 的 128-EEA3 与 128-EIA3。</p>
+<dl>
+<div>
+<dt>ZUC-128</dt>
+<dd>K = 128 bit；IV = 128 bit</dd>
+</div>
+<div>
+<dt>密钥流</dt>
+<dd>每次输出 32 bit 字</dd>
+</div>
+</dl>
+<p class="micro-note">ZUC-256 有不同 IV 接口表示，报告列举 184 bit 版本；以所用标准或实现为准。同一 (K, IV) 不得重用。</p>
+</article>
+<article class="algorithm" data-category="流密码">
+<div class="algo-top">
+<h3>ChaCha20 / Salsa20</h3>
+<span class="status">现代流密码家族</span>
+</div>
+<p>以加法、循环移位和异或组织运算。ChaCha20-IETF 使用 256 bit 密钥、96 bit nonce；常与 Poly1305 组合为 AEAD。</p>
+<dl>
+<div>
+<dt>ChaCha20-IETF</dt>
+<dd>256 bit key / 96 bit nonce</dd>
+</div>
+<div>
+<dt>输出</dt>
+<dd>与明文等长</dd>
+</div>
+</dl>
+<p class="micro-note">Salsa20 和原始 ChaCha 的 nonce 布局与 IETF 版不同，不能直接套用参数。</p>
+</article>
+<article class="algorithm" data-category="非对称密码">
+<div class="algo-top">
+<h3>RSA</h3>
+<span class="status">区分编码与强度</span>
+</div>
+<p>密钥长度通常指模数 n 的位数。RSA-2048 的密文或签名为 256 字节，不能直接加密任意长度文件。</p>
+<dl>
+<div>
+<dt>典型模数</dt>
+<dd>2048 / 3072 / 4096 bit</dd>
+</div>
+<div>
+<dt>安全强度</dt>
+<dd>2048 ≈ 112；3072 ≈ 128 bit</dd>
+</div>
+</dl>
+<p class="micro-note">OAEP 最大输入 k − 2hLen − 2 字节；2048 bit + SHA-256 时为 190 字节。v1.5 的 k − 11 是另一种编码规则。</p>
+</article>
+<article class="algorithm" data-category="非对称密码">
+<div class="algo-top">
+<h3>ECC / SM2</h3>
+<span class="status">曲线密码</span>
+</div>
+<p>ECC 是算法家族。256 bit 椭圆曲线通常对应约 128 bit 安全强度。SM2 在指定曲线上定义签名、密钥交换与公钥加密。</p>
+<dl>
+<div>
+<dt>SM2 私钥</dt>
+<dd>256 bit</dd>
+</div>
+<div>
+<dt>SM2 原始签名</dt>
+<dd>r = 32 B；s = 32 B</dd>
+</div>
+</dl>
+<p class="micro-note">r ‖ s 共 64 B，DER 编码长度不同。65 B 常指带前缀的未压缩曲线点，不是通用签名长度。SM2 C1C3C2 常见开销 97 B。</p>
+</article>
+<article class="algorithm" data-category="非对称密码">
+<div class="algo-top">
+<h3>SM9</h3>
+<span class="status">标识密码</span>
+</div>
+<p>以用户身份标识参与构造公钥，结合系统主公钥和密钥生成中心分发的用户私钥，提供签名、加密与密钥协商。</p>
+<dl>
+<div>
+<dt>底层参数</dt>
+<dd>256 bit 素域参数</dd>
+</div>
+<div>
+<dt>系统条件</dt>
+<dd>依赖主密钥与密钥生成中心</dd>
+</div>
+</dl>
+<p class="micro-note">“身份即公钥”是简写，身份字符串不能脱离系统参数独立工作；参数位数不能直接等同于安全强度。</p>
+</article>
+<article class="algorithm" data-category="哈希">
+<div class="algo-top">
+<h3>SHA-2 / SHA-3 / SM3</h3>
+<span class="status">摘要不是密文</span>
+</div>
+<p>任意长度消息经过哈希，得到规定长度摘要。SHA-3 采用海绵结构；SM3 输出 256 bit。SHAKE 是可扩展输出函数。</p>
+<dl>
+<div>
+<dt>SHA-256 / SM3</dt>
+<dd>512 bit 消息块 → 256 bit 摘要</dd>
+</div>
+<div>
+<dt>SHA-512</dt>
+<dd>1024 bit 消息块 → 512 bit 摘要</dd>
+</div>
+</dl>
+<p class="micro-note">MD5、SHA-1 的抗碰撞性已破坏。HMAC 使用密钥和哈希构造认证码，与无密钥摘要的用途不同。</p>
+</article>
+</div>
+<figure class="des-round">
+<h3>拆开 DES 的一轮</h3>
+<p>右半部经过轮函数，再与左半部异或。以下省略初始置换、末置换等外围步骤。</p>
+<div class="diagram-scroll svg-diagram" tabindex="0" aria-label="DES 单轮流程，可横向滚动">
+<svg viewBox="0 0 940 190" role="img" aria-labelledby="round-title round-desc">
+<title id="round-title">DES 的一轮 Feistel 运算</title>
+<desc id="round-desc">右半部 R 由 32 位扩展到 48 位，与轮密钥异或，经过八个 S 盒压缩到 32 位，再经 P 置换，与左半部 L 异或。新的左半部是原右半部，新的右半部是异或结果。</desc>
+<g class="node " data-step="0">
+<rect x="8.0" y="45" width="104" height="54" rx="5"/>
+<text x="60" y="69.0">R</text>
+<text class="sub" x="60" y="87.0">32 bit</text>
+</g>
+<g class="node engine" data-step="0">
+<rect x="163.0" y="45" width="104" height="54" rx="5"/>
+<text x="215" y="69.0">E 扩展</text>
+<text class="sub" x="215" y="87.0">32 → 48</text>
+</g>
+<g class="node engine" data-step="0">
+<rect x="368.0" y="45" width="104" height="54" rx="5"/>
+<text x="420" y="69.0">S 盒 × 8</text>
+<text class="sub" x="420" y="87.0">48 → 32</text>
+</g>
+<g class="node engine" data-step="0">
+<rect x="533.0" y="45" width="104" height="54" rx="5"/>
+<text x="585" y="69.0">P 置换</text>
+<text class="sub" x="585" y="87.0">32 bit</text>
+</g>
+<g class="node " data-step="0">
+<rect x="763.0" y="45" width="104" height="54" rx="5"/>
+<text x="815" y="69.0">R′</text>
+<text class="sub" x="815" y="87.0">32 bit</text>
+</g>
+<g class="xor" data-step="0">
+<circle cx="320" cy="72" r="15"/>
+<text x="320" y="78">⊕</text>
+</g>
+<g class="xor" data-step="0">
+<circle cx="710" cy="72" r="15"/>
+<text x="710" y="78">⊕</text>
+</g>
+<path class="wire " data-step="0" d="M112 72 H163" marker-end="url(#arrow)"/>
+<path class="wire " data-step="0" d="M267 72 H305" marker-end="url(#arrow)"/>
+<path class="wire " data-step="0" d="M335 72 H368" marker-end="url(#arrow)"/>
+<path class="wire " data-step="0" d="M472 72 H533" marker-end="url(#arrow)"/>
+<path class="wire " data-step="0" d="M637 72 H695" marker-end="url(#arrow)"/>
+<path class="wire " data-step="0" d="M725 72 H763" marker-end="url(#arrow)"/>
+<path class="wire " data-step="0" d="M320 153 V87" marker-end="url(#arrow)"/>
+<path class="wire " data-step="0" d="M710 153 V87" marker-end="url(#arrow)"/>
+<text class="wire-label" x="320" y="177">Kᵢ / 48 bit</text>
+<text class="wire-label" x="710" y="177">L / 32 bit</text>
+<text class="wire-label" x="87" y="148">L′ = R</text>
+</svg>
+</div>
+<figcaption class="small muted">L′ = R；R′ = L ⊕ f(R, Kᵢ)。E 扩展盒与加密函数 E_K 是不同概念。</figcaption>
+</figure>
+</section>
+<section class="section" id="modes">
+<h2>沿着线，读懂工作模式。</h2>
+<p class="section-intro">下面沿用报告，以 DES 的 64 位分组说明结构。分组密码只是运算器，工作模式决定它收到什么、何时运行，以及输出如何参与下一块。</p>
+<p class="section-note">DES 仅用于教学。理解这些结构时，也要分开看待“保密”与“认证”：下面六种模式本身都不提供消息认证。</p>
+<div class="mode-nav js-only" role="tablist" aria-label="选择工作模式">
+<button class="mode-tab" role="tab" id="tab-ecb" type="button" aria-controls="mode-ecb" aria-selected="true" tabindex="0" data-mode-target="ECB">ECB</button>
+<button class="mode-tab" role="tab" id="tab-cbc" type="button" aria-controls="mode-cbc" aria-selected="false" tabindex="-1" data-mode-target="CBC">CBC</button>
+<button class="mode-tab" role="tab" id="tab-cfb" type="button" aria-controls="mode-cfb" aria-selected="false" tabindex="-1" data-mode-target="CFB">CFB</button>
+<button class="mode-tab" role="tab" id="tab-ofb" type="button" aria-controls="mode-ofb" aria-selected="false" tabindex="-1" data-mode-target="OFB">OFB</button>
+<button class="mode-tab" role="tab" id="tab-ctr" type="button" aria-controls="mode-ctr" aria-selected="false" tabindex="-1" data-mode-target="CTR">CTR</button>
+<button class="mode-tab" role="tab" id="tab-pcbc" type="button" aria-controls="mode-pcbc" aria-selected="false" tabindex="-1" data-mode-target="PCBC">PCBC</button>
+</div>
+<article class="mode-panel" id="mode-ecb" data-mode="ECB" aria-labelledby="heading-ecb">
+<div class="mode-heading">
+<span class="mode-name">ECB</span>
+<div>
+<h3 id="heading-ecb">电子密码本</h3>
+<p class="en">Electronic codebook</p>
+</div>
+</div>
+<p class="mode-summary">没有反馈线，也没有随机化。同一密钥下，只要 P₁ = P₃，就必然有 C₁ = C₃。</p>
+<div class="diagram-toolbar js-only">
+<div class="direction-switch" aria-label="ECB图示方向">
+<button type="button" data-direction="enc" aria-pressed="true">加密</button>
+<button type="button" data-direction="dec" aria-pressed="false">解密</button>
+</div>
+<span class="diagram-legend">实线：数据流　虚线：反馈依赖</span>
+</div>
+<figure class="mode-figure" data-view="enc">
+<div class="diagram-scroll svg-diagram" tabindex="0" aria-label="ECB加密接线图，可横向滚动">
+<svg viewBox="0 0 920 400" role="img" aria-labelledby="ecb-enc-title ecb-enc-desc">
+<title id="ecb-enc-title">ECB 加密：三个连续分组的数据流</title>
+<desc id="ecb-enc-desc">每个分组独立进入分组加密器，相同明文块在同一密钥下得到相同密文块。箭头表示数据依赖，虚线表示反馈。P 是明文，C 是密文，E 和 D 是分组加密和解密运算，所有分组使用同一密钥 K。</desc>
+<g class="node " data-step="1">
+<rect x="102.0" y="30" width="116" height="38" rx="5"/>
+<text x="160" y="54.0">P₁</text>
+</g>
+<path class="wire " data-step="1" d="M160 68 V155" marker-end="url(#arrow)"/>
+<g class="node engine" data-step="2">
+<rect x="102.0" y="155" width="116" height="58" rx="5"/>
+<text x="160" y="181.0">E_K</text>
+<text class="sub" x="160" y="199.0">DES / 64 bit</text>
+</g>
+<path class="wire " data-step="3" d="M160 213 V300" marker-end="url(#arrow)"/>
+<g class="node output" data-step="3">
+<rect x="102.0" y="300" width="116" height="38" rx="5"/>
+<text x="160" y="324.0">C₁</text>
+</g>
+<g class="node " data-step="4">
+<rect x="392.0" y="30" width="116" height="38" rx="5"/>
+<text x="450" y="54.0">P₂</text>
+</g>
+<path class="wire " data-step="4" d="M450 68 V155" marker-end="url(#arrow)"/>
+<g class="node engine" data-step="5">
+<rect x="392.0" y="155" width="116" height="58" rx="5"/>
+<text x="450" y="181.0">E_K</text>
+<text class="sub" x="450" y="199.0">DES / 64 bit</text>
+</g>
+<path class="wire " data-step="6" d="M450 213 V300" marker-end="url(#arrow)"/>
+<g class="node output" data-step="6">
+<rect x="392.0" y="300" width="116" height="38" rx="5"/>
+<text x="450" y="324.0">C₂</text>
+</g>
+<g class="node " data-step="7">
+<rect x="682.0" y="30" width="116" height="38" rx="5"/>
+<text x="740" y="54.0">P₃</text>
+</g>
+<path class="wire " data-step="7" d="M740 68 V155" marker-end="url(#arrow)"/>
+<g class="node engine" data-step="8">
+<rect x="682.0" y="155" width="116" height="58" rx="5"/>
+<text x="740" y="181.0">E_K</text>
+<text class="sub" x="740" y="199.0">DES / 64 bit</text>
+</g>
+<path class="wire " data-step="9" d="M740 213 V300" marker-end="url(#arrow)"/>
+<g class="node output" data-step="9">
+<rect x="682.0" y="300" width="116" height="38" rx="5"/>
+<text x="740" y="324.0">C₃</text>
+</g>
+</svg>
+</div>
+<figcaption>
+<strong>ECB 加密</strong>　P：明文　C：密文　S：密钥流　E_K / D_K：同一密钥下的加密 / 解密运算</figcaption>
+<div class="formula">Cᵢ = E_K(Pᵢ)</div>
+</figure>
+<figure class="mode-figure" data-view="dec">
+<div class="diagram-scroll svg-diagram" tabindex="0" aria-label="ECB解密接线图，可横向滚动">
+<svg viewBox="0 0 920 400" role="img" aria-labelledby="ecb-dec-title ecb-dec-desc">
+<title id="ecb-dec-title">ECB 解密：三个连续分组的数据流</title>
+<desc id="ecb-dec-desc">每个分组独立进入分组加密器，相同明文块在同一密钥下得到相同密文块。箭头表示数据依赖，虚线表示反馈。P 是明文，C 是密文，E 和 D 是分组加密和解密运算，所有分组使用同一密钥 K。</desc>
+<g class="node " data-step="1">
+<rect x="102.0" y="30" width="116" height="38" rx="5"/>
+<text x="160" y="54.0">C₁</text>
+</g>
+<path class="wire " data-step="1" d="M160 68 V155" marker-end="url(#arrow)"/>
+<g class="node engine" data-step="2">
+<rect x="102.0" y="155" width="116" height="58" rx="5"/>
+<text x="160" y="181.0">D_K</text>
+<text class="sub" x="160" y="199.0">DES / 64 bit</text>
+</g>
+<path class="wire " data-step="3" d="M160 213 V300" marker-end="url(#arrow)"/>
+<g class="node output" data-step="3">
+<rect x="102.0" y="300" width="116" height="38" rx="5"/>
+<text x="160" y="324.0">P₁</text>
+</g>
+<g class="node " data-step="4">
+<rect x="392.0" y="30" width="116" height="38" rx="5"/>
+<text x="450" y="54.0">C₂</text>
+</g>
+<path class="wire " data-step="4" d="M450 68 V155" marker-end="url(#arrow)"/>
+<g class="node engine" data-step="5">
+<rect x="392.0" y="155" width="116" height="58" rx="5"/>
+<text x="450" y="181.0">D_K</text>
+<text class="sub" x="450" y="199.0">DES / 64 bit</text>
+</g>
+<path class="wire " data-step="6" d="M450 213 V300" marker-end="url(#arrow)"/>
+<g class="node output" data-step="6">
+<rect x="392.0" y="300" width="116" height="38" rx="5"/>
+<text x="450" y="324.0">P₂</text>
+</g>
+<g class="node " data-step="7">
+<rect x="682.0" y="30" width="116" height="38" rx="5"/>
+<text x="740" y="54.0">C₃</text>
+</g>
+<path class="wire " data-step="7" d="M740 68 V155" marker-end="url(#arrow)"/>
+<g class="node engine" data-step="8">
+<rect x="682.0" y="155" width="116" height="58" rx="5"/>
+<text x="740" y="181.0">D_K</text>
+<text class="sub" x="740" y="199.0">DES / 64 bit</text>
+</g>
+<path class="wire " data-step="9" d="M740 213 V300" marker-end="url(#arrow)"/>
+<g class="node output" data-step="9">
+<rect x="682.0" y="300" width="116" height="38" rx="5"/>
+<text x="740" y="324.0">P₃</text>
+</g>
+</svg>
+</div>
+<figcaption>
+<strong>ECB 解密</strong>　P：明文　C：密文　S：密钥流　E_K / D_K：同一密钥下的加密 / 解密运算</figcaption>
+<div class="formula">Pᵢ = D_K(Cᵢ)</div>
+</figure>
+<div class="trace-controls js-only">
+<button type="button" data-trace="prev" disabled>上一步</button>
+<button type="button" data-trace="next">下一步</button>
+<button type="button" data-trace="reset" disabled>重置</button>
+<span class="step-counter" aria-label="当前追踪位置">完整图示 / 9 步</span>
+</div>
+<p class="trace-note js-only" aria-live="polite">当前显示完整数据流。选择“下一步”，逐项查看输入、运算和输出。</p>
+<dl class="mode-facts">
+<div>
+<dt>IV / Nonce</dt>
+<dd>不使用 IV</dd>
+</div>
+<div>
+<dt>填充</dt>
+<dd>需要整块输入，常用 PKCS#7</dd>
+</div>
+<div>
+<dt>并行性</dt>
+<dd>加密、解密均可并行</dd>
+</div>
+</dl>
+<p class="mode-warning">
+<strong>使用边界</strong>　会暴露明文块的重复关系，不适合一般消息保密。也无法检测密文分组的重排、替换或删除。</p>
+</article>
+<article class="mode-panel" id="mode-cbc" data-mode="CBC" aria-labelledby="heading-cbc">
+<div class="mode-heading">
+<span class="mode-name">CBC</span>
+<div>
+<h3 id="heading-cbc">密码分组链接</h3>
+<p class="en">Cipher block chaining</p>
+</div>
+</div>
+<p class="mode-summary">加密必须等上一块产生密文。解密端已有所有密文块，因此各次 D_K 可同时进行。</p>
+<div class="diagram-toolbar js-only">
+<div class="direction-switch" aria-label="CBC图示方向">
+<button type="button" data-direction="enc" aria-pressed="true">加密</button>
+<button type="button" data-direction="dec" aria-pressed="false">解密</button>
+</div>
+<span class="diagram-legend">实线：数据流　虚线：反馈依赖</span>
+</div>
+<figure class="mode-figure" data-view="enc">
+<div class="diagram-scroll svg-diagram" tabindex="0" aria-label="CBC加密接线图，可横向滚动">
+<svg viewBox="0 0 920 400" role="img" aria-labelledby="cbc-enc-title cbc-enc-desc">
+<title id="cbc-enc-title">CBC 加密：三个连续分组的数据流</title>
+<desc id="cbc-enc-desc">加密时，当前明文先与前一密文异或再加密；解密时，当前密文先解密再与前一密文异或。箭头表示数据依赖，虚线表示反馈。P 是明文，C 是密文，E 和 D 是分组加密和解密运算，所有分组使用同一密钥 K。</desc>
+<g class="node " data-step="1">
+<rect x="102.0" y="30" width="116" height="38" rx="5"/>
+<text x="160" y="54.0">P₁</text>
+</g>
+<path class="wire " data-step="1" d="M160 68 V110" marker-end="url(#arrow)"/>
+<g class="xor" data-step="2">
+<circle cx="160" cy="125" r="15"/>
+<text x="160" y="131">⊕</text>
+</g>
+<path class="wire " data-step="2" d="M160 140 V175" marker-end="url(#arrow)"/>
+<g class="node engine" data-step="2">
+<rect x="102.0" y="175" width="116" height="58" rx="5"/>
+<text x="160" y="201.0">E_K</text>
+<text class="sub" x="160" y="219.0">DES / 64 bit</text>
+</g>
+<path class="wire " data-step="3" d="M160 233 V290" marker-end="url(#arrow)"/>
+<g class="node output" data-step="3">
+<rect x="102.0" y="290" width="116" height="38" rx="5"/>
+<text x="160" y="314.0">C₁</text>
+</g>
+<path class="wire feedback" data-step="3" d="M160 328 V360 H305 V125 H435" marker-end="url(#arrow)"/>
+<text class="wire-label" x="305" y="382">反馈 C₁</text>
+<g class="node " data-step="1">
+<rect x="21.0" y="106" width="54" height="38" rx="5"/>
+<text x="48" y="130.0">IV</text>
+</g>
+<path class="wire feedback" data-step="1" d="M75 125 H145" marker-end="url(#arrow)"/>
+<g class="node " data-step="4">
+<rect x="392.0" y="30" width="116" height="38" rx="5"/>
+<text x="450" y="54.0">P₂</text>
+</g>
+<path class="wire " data-step="4" d="M450 68 V110" marker-end="url(#arrow)"/>
+<g class="xor" data-step="5">
+<circle cx="450" cy="125" r="15"/>
+<text x="450" y="131">⊕</text>
+</g>
+<path class="wire " data-step="5" d="M450 140 V175" marker-end="url(#arrow)"/>
+<g class="node engine" data-step="5">
+<rect x="392.0" y="175" width="116" height="58" rx="5"/>
+<text x="450" y="201.0">E_K</text>
+<text class="sub" x="450" y="219.0">DES / 64 bit</text>
+</g>
+<path class="wire " data-step="6" d="M450 233 V290" marker-end="url(#arrow)"/>
+<g class="node output" data-step="6">
+<rect x="392.0" y="290" width="116" height="38" rx="5"/>
+<text x="450" y="314.0">C₂</text>
+</g>
+<path class="wire feedback" data-step="6" d="M450 328 V360 H595 V125 H725" marker-end="url(#arrow)"/>
+<text class="wire-label" x="595" y="382">反馈 C₂</text>
+<g class="node " data-step="7">
+<rect x="682.0" y="30" width="116" height="38" rx="5"/>
+<text x="740" y="54.0">P₃</text>
+</g>
+<path class="wire " data-step="7" d="M740 68 V110" marker-end="url(#arrow)"/>
+<g class="xor" data-step="8">
+<circle cx="740" cy="125" r="15"/>
+<text x="740" y="131">⊕</text>
+</g>
+<path class="wire " data-step="8" d="M740 140 V175" marker-end="url(#arrow)"/>
+<g class="node engine" data-step="8">
+<rect x="682.0" y="175" width="116" height="58" rx="5"/>
+<text x="740" y="201.0">E_K</text>
+<text class="sub" x="740" y="219.0">DES / 64 bit</text>
+</g>
+<path class="wire " data-step="9" d="M740 233 V290" marker-end="url(#arrow)"/>
+<g class="node output" data-step="9">
+<rect x="682.0" y="290" width="116" height="38" rx="5"/>
+<text x="740" y="314.0">C₃</text>
+</g>
+</svg>
+</div>
+<figcaption>
+<strong>CBC 加密</strong>　P：明文　C：密文　S：密钥流　E_K / D_K：同一密钥下的加密 / 解密运算</figcaption>
+<div class="formula">Cᵢ = E_K(Pᵢ ⊕ Cᵢ₋₁)，C₀ = IV</div>
+</figure>
+<figure class="mode-figure" data-view="dec">
+<div class="diagram-scroll svg-diagram" tabindex="0" aria-label="CBC解密接线图，可横向滚动">
+<svg viewBox="0 0 920 400" role="img" aria-labelledby="cbc-dec-title cbc-dec-desc">
+<title id="cbc-dec-title">CBC 解密：三个连续分组的数据流</title>
+<desc id="cbc-dec-desc">加密时，当前明文先与前一密文异或再加密；解密时，当前密文先解密再与前一密文异或。箭头表示数据依赖，虚线表示反馈。P 是明文，C 是密文，E 和 D 是分组加密和解密运算，所有分组使用同一密钥 K。</desc>
+<g class="node " data-step="1">
+<rect x="102.0" y="30" width="116" height="38" rx="5"/>
+<text x="160" y="54.0">C₁</text>
+</g>
+<path class="wire " data-step="1" d="M160 68 V125" marker-end="url(#arrow)"/>
+<g class="node engine" data-step="2">
+<rect x="102.0" y="125" width="116" height="58" rx="5"/>
+<text x="160" y="151.0">D_K</text>
+<text class="sub" x="160" y="169.0">DES / 64 bit</text>
+</g>
+<path class="wire " data-step="2" d="M160 183 V230" marker-end="url(#arrow)"/>
+<g class="xor" data-step="2">
+<circle cx="160" cy="245" r="15"/>
+<text x="160" y="251">⊕</text>
+</g>
+<path class="wire " data-step="3" d="M160 260 V300" marker-end="url(#arrow)"/>
+<g class="node output" data-step="3">
+<rect x="102.0" y="300" width="116" height="38" rx="5"/>
+<text x="160" y="324.0">P₁</text>
+</g>
+<path class="wire feedback" data-step="1" d="M218 49 H305 V245 H435" marker-end="url(#arrow)"/>
+<text class="wire-label" x="305" y="220">前一密文 C₁</text>
+<g class="node " data-step="1">
+<rect x="21.0" y="226" width="54" height="38" rx="5"/>
+<text x="48" y="250.0">IV</text>
+</g>
+<path class="wire feedback" data-step="1" d="M75 245 H145" marker-end="url(#arrow)"/>
+<g class="node " data-step="4">
+<rect x="392.0" y="30" width="116" height="38" rx="5"/>
+<text x="450" y="54.0">C₂</text>
+</g>
+<path class="wire " data-step="4" d="M450 68 V125" marker-end="url(#arrow)"/>
+<g class="node engine" data-step="5">
+<rect x="392.0" y="125" width="116" height="58" rx="5"/>
+<text x="450" y="151.0">D_K</text>
+<text class="sub" x="450" y="169.0">DES / 64 bit</text>
+</g>
+<path class="wire " data-step="5" d="M450 183 V230" marker-end="url(#arrow)"/>
+<g class="xor" data-step="5">
+<circle cx="450" cy="245" r="15"/>
+<text x="450" y="251">⊕</text>
+</g>
+<path class="wire " data-step="6" d="M450 260 V300" marker-end="url(#arrow)"/>
+<g class="node output" data-step="6">
+<rect x="392.0" y="300" width="116" height="38" rx="5"/>
+<text x="450" y="324.0">P₂</text>
+</g>
+<path class="wire feedback" data-step="4" d="M508 49 H595 V245 H725" marker-end="url(#arrow)"/>
+<text class="wire-label" x="595" y="220">前一密文 C₂</text>
+<g class="node " data-step="7">
+<rect x="682.0" y="30" width="116" height="38" rx="5"/>
+<text x="740" y="54.0">C₃</text>
+</g>
+<path class="wire " data-step="7" d="M740 68 V125" marker-end="url(#arrow)"/>
+<g class="node engine" data-step="8">
+<rect x="682.0" y="125" width="116" height="58" rx="5"/>
+<text x="740" y="151.0">D_K</text>
+<text class="sub" x="740" y="169.0">DES / 64 bit</text>
+</g>
+<path class="wire " data-step="8" d="M740 183 V230" marker-end="url(#arrow)"/>
+<g class="xor" data-step="8">
+<circle cx="740" cy="245" r="15"/>
+<text x="740" y="251">⊕</text>
+</g>
+<path class="wire " data-step="9" d="M740 260 V300" marker-end="url(#arrow)"/>
+<g class="node output" data-step="9">
+<rect x="682.0" y="300" width="116" height="38" rx="5"/>
+<text x="740" y="324.0">P₃</text>
+</g>
+</svg>
+</div>
+<figcaption>
+<strong>CBC 解密</strong>　P：明文　C：密文　S：密钥流　E_K / D_K：同一密钥下的加密 / 解密运算</figcaption>
+<div class="formula">Pᵢ = D_K(Cᵢ) ⊕ Cᵢ₋₁，C₀ = IV</div>
+</figure>
+<div class="trace-controls js-only">
+<button type="button" data-trace="prev" disabled>上一步</button>
+<button type="button" data-trace="next">下一步</button>
+<button type="button" data-trace="reset" disabled>重置</button>
+<span class="step-counter" aria-label="当前追踪位置">完整图示 / 9 步</span>
+</div>
+<p class="trace-note js-only" aria-live="polite">当前显示完整数据流。选择“下一步”，逐项查看输入、运算和输出。</p>
+<dl class="mode-facts">
+<div>
+<dt>IV / Nonce</dt>
+<dd>每条消息使用新生成、不可预测的 IV</dd>
+</div>
+<div>
+<dt>填充</dt>
+<dd>需要整块输入，常用 PKCS#7</dd>
+</div>
+<div>
+<dt>并行性</dt>
+<dd>加密串行；解密可并行</dd>
+</div>
+</dl>
+<p class="mode-warning">
+<strong>使用边界</strong>　IV 不必保密，但应保护其完整性。CBC 本身不认证消息；填充错误处理不当还可能形成填充预言机。</p>
+</article>
+<article class="mode-panel" id="mode-cfb" data-mode="CFB" aria-labelledby="heading-cfb">
+<div class="mode-heading">
+<span class="mode-name">CFB</span>
+<div>
+<h3 id="heading-cfb">密文反馈</h3>
+<p class="en">Cipher feedback</p>
+</div>
+</div>
+<p class="mode-summary">图中采用 DES 的整块反馈 CFB-64。解密端反馈的是收到的密文，不是恢复出的明文。</p>
+<div class="diagram-toolbar js-only">
+<div class="direction-switch" aria-label="CFB图示方向">
+<button type="button" data-direction="enc" aria-pressed="true">加密</button>
+<button type="button" data-direction="dec" aria-pressed="false">解密</button>
+</div>
+<span class="diagram-legend">实线：数据流　虚线：反馈依赖</span>
+</div>
+<figure class="mode-figure" data-view="enc">
+<div class="diagram-scroll svg-diagram" tabindex="0" aria-label="CFB加密接线图，可横向滚动">
+<svg viewBox="0 0 920 400" role="img" aria-labelledby="cfb-enc-title cfb-enc-desc">
+<title id="cfb-enc-title">CFB 加密：三个连续分组的数据流</title>
+<desc id="cfb-enc-desc">E_K 的输入是 IV 或前一密文块，其输出密钥流与当前明文或密文异或；加密和解密都使用 E_K。箭头表示数据依赖，虚线表示反馈。P 是明文，C 是密文，E 和 D 是分组加密和解密运算，所有分组使用同一密钥 K。</desc>
+<g class="node " data-step="1">
+<rect x="102.0" y="30" width="116" height="38" rx="5"/>
+<text x="160" y="54.0">IV</text>
+</g>
+<path class="wire " data-step="1" d="M160 68 V125" marker-end="url(#arrow)"/>
+<g class="node engine" data-step="2">
+<rect x="102.0" y="125" width="116" height="50" rx="5"/>
+<text x="160" y="147.0">E_K</text>
+<text class="sub" x="160" y="165.0">DES / 64 bit</text>
+</g>
+<path class="wire " data-step="2" d="M160 175 V194" marker-end="url(#arrow)"/>
+<g class="node stream" data-step="2">
+<rect x="115.0" y="194" width="90" height="32" rx="5"/>
+<text x="160" y="215.0">S₁</text>
+</g>
+<path class="wire " data-step="2" d="M160 226 V245" marker-end="url(#arrow)"/>
+<g class="xor" data-step="2">
+<circle cx="160" cy="260" r="15"/>
+<text x="160" y="266">⊕</text>
+</g>
+<g class="node " data-step="1">
+<rect x="31.0" y="243" width="68" height="34" rx="5"/>
+<text x="65" y="265.0">P₁</text>
+</g>
+<path class="wire " data-step="1" d="M99 260 H145" marker-end="url(#arrow)"/>
+<path class="wire " data-step="3" d="M160 275 V306" marker-end="url(#arrow)"/>
+<g class="node output" data-step="3">
+<rect x="102.0" y="306" width="116" height="34" rx="5"/>
+<text x="160" y="328.0">C₁</text>
+</g>
+<path class="wire feedback" data-step="3" d="M160 340 V365 H305 V12 H450 V30" marker-end="url(#arrow)"/>
+<text class="wire-label" x="305" y="388">反馈 C₁</text>
+<g class="node " data-step="4">
+<rect x="392.0" y="30" width="116" height="38" rx="5"/>
+<text x="450" y="54.0">C₁</text>
+</g>
+<path class="wire " data-step="4" d="M450 68 V125" marker-end="url(#arrow)"/>
+<g class="node engine" data-step="5">
+<rect x="392.0" y="125" width="116" height="50" rx="5"/>
+<text x="450" y="147.0">E_K</text>
+<text class="sub" x="450" y="165.0">DES / 64 bit</text>
+</g>
+<path class="wire " data-step="5" d="M450 175 V194" marker-end="url(#arrow)"/>
+<g class="node stream" data-step="5">
+<rect x="405.0" y="194" width="90" height="32" rx="5"/>
+<text x="450" y="215.0">S₂</text>
+</g>
+<path class="wire " data-step="5" d="M450 226 V245" marker-end="url(#arrow)"/>
+<g class="xor" data-step="5">
+<circle cx="450" cy="260" r="15"/>
+<text x="450" y="266">⊕</text>
+</g>
+<g class="node " data-step="4">
+<rect x="321.0" y="243" width="68" height="34" rx="5"/>
+<text x="355" y="265.0">P₂</text>
+</g>
+<path class="wire " data-step="4" d="M389 260 H435" marker-end="url(#arrow)"/>
+<path class="wire " data-step="6" d="M450 275 V306" marker-end="url(#arrow)"/>
+<g class="node output" data-step="6">
+<rect x="392.0" y="306" width="116" height="34" rx="5"/>
+<text x="450" y="328.0">C₂</text>
+</g>
+<path class="wire feedback" data-step="6" d="M450 340 V365 H595 V12 H740 V30" marker-end="url(#arrow)"/>
+<text class="wire-label" x="595" y="388">反馈 C₂</text>
+<g class="node " data-step="7">
+<rect x="682.0" y="30" width="116" height="38" rx="5"/>
+<text x="740" y="54.0">C₂</text>
+</g>
+<path class="wire " data-step="7" d="M740 68 V125" marker-end="url(#arrow)"/>
+<g class="node engine" data-step="8">
+<rect x="682.0" y="125" width="116" height="50" rx="5"/>
+<text x="740" y="147.0">E_K</text>
+<text class="sub" x="740" y="165.0">DES / 64 bit</text>
+</g>
+<path class="wire " data-step="8" d="M740 175 V194" marker-end="url(#arrow)"/>
+<g class="node stream" data-step="8">
+<rect x="695.0" y="194" width="90" height="32" rx="5"/>
+<text x="740" y="215.0">S₃</text>
+</g>
+<path class="wire " data-step="8" d="M740 226 V245" marker-end="url(#arrow)"/>
+<g class="xor" data-step="8">
+<circle cx="740" cy="260" r="15"/>
+<text x="740" y="266">⊕</text>
+</g>
+<g class="node " data-step="7">
+<rect x="611.0" y="243" width="68" height="34" rx="5"/>
+<text x="645" y="265.0">P₃</text>
+</g>
+<path class="wire " data-step="7" d="M679 260 H725" marker-end="url(#arrow)"/>
+<path class="wire " data-step="9" d="M740 275 V306" marker-end="url(#arrow)"/>
+<g class="node output" data-step="9">
+<rect x="682.0" y="306" width="116" height="34" rx="5"/>
+<text x="740" y="328.0">C₃</text>
+</g>
+</svg>
+</div>
+<figcaption>
+<strong>CFB 加密</strong>　P：明文　C：密文　S：密钥流　E_K / D_K：同一密钥下的加密 / 解密运算</figcaption>
+<div class="formula">Cᵢ = Pᵢ ⊕ E_K(Cᵢ₋₁)，C₀ = IV</div>
+</figure>
+<figure class="mode-figure" data-view="dec">
+<div class="diagram-scroll svg-diagram" tabindex="0" aria-label="CFB解密接线图，可横向滚动">
+<svg viewBox="0 0 920 400" role="img" aria-labelledby="cfb-dec-title cfb-dec-desc">
+<title id="cfb-dec-title">CFB 解密：三个连续分组的数据流</title>
+<desc id="cfb-dec-desc">E_K 的输入是 IV 或前一密文块，其输出密钥流与当前明文或密文异或；加密和解密都使用 E_K。箭头表示数据依赖，虚线表示反馈。P 是明文，C 是密文，E 和 D 是分组加密和解密运算，所有分组使用同一密钥 K。</desc>
+<g class="node " data-step="1">
+<rect x="102.0" y="30" width="116" height="38" rx="5"/>
+<text x="160" y="54.0">IV</text>
+</g>
+<path class="wire " data-step="1" d="M160 68 V125" marker-end="url(#arrow)"/>
+<g class="node engine" data-step="2">
+<rect x="102.0" y="125" width="116" height="50" rx="5"/>
+<text x="160" y="147.0">E_K</text>
+<text class="sub" x="160" y="165.0">DES / 64 bit</text>
+</g>
+<path class="wire " data-step="2" d="M160 175 V194" marker-end="url(#arrow)"/>
+<g class="node stream" data-step="2">
+<rect x="115.0" y="194" width="90" height="32" rx="5"/>
+<text x="160" y="215.0">S₁</text>
+</g>
+<path class="wire " data-step="2" d="M160 226 V245" marker-end="url(#arrow)"/>
+<g class="xor" data-step="2">
+<circle cx="160" cy="260" r="15"/>
+<text x="160" y="266">⊕</text>
+</g>
+<g class="node " data-step="1">
+<rect x="31.0" y="243" width="68" height="34" rx="5"/>
+<text x="65" y="265.0">C₁</text>
+</g>
+<path class="wire " data-step="1" d="M99 260 H145" marker-end="url(#arrow)"/>
+<path class="wire " data-step="3" d="M160 275 V306" marker-end="url(#arrow)"/>
+<g class="node output" data-step="3">
+<rect x="102.0" y="306" width="116" height="34" rx="5"/>
+<text x="160" y="328.0">P₁</text>
+</g>
+<path class="wire feedback" data-step="1" d="M65 277 V365 H305 V12 H450 V30" marker-end="url(#arrow)"/>
+<text class="wire-label" x="305" y="97">反馈 C₁</text>
+<g class="node " data-step="4">
+<rect x="392.0" y="30" width="116" height="38" rx="5"/>
+<text x="450" y="54.0">C₁</text>
+</g>
+<path class="wire " data-step="4" d="M450 68 V125" marker-end="url(#arrow)"/>
+<g class="node engine" data-step="5">
+<rect x="392.0" y="125" width="116" height="50" rx="5"/>
+<text x="450" y="147.0">E_K</text>
+<text class="sub" x="450" y="165.0">DES / 64 bit</text>
+</g>
+<path class="wire " data-step="5" d="M450 175 V194" marker-end="url(#arrow)"/>
+<g class="node stream" data-step="5">
+<rect x="405.0" y="194" width="90" height="32" rx="5"/>
+<text x="450" y="215.0">S₂</text>
+</g>
+<path class="wire " data-step="5" d="M450 226 V245" marker-end="url(#arrow)"/>
+<g class="xor" data-step="5">
+<circle cx="450" cy="260" r="15"/>
+<text x="450" y="266">⊕</text>
+</g>
+<g class="node " data-step="4">
+<rect x="321.0" y="243" width="68" height="34" rx="5"/>
+<text x="355" y="265.0">C₂</text>
+</g>
+<path class="wire " data-step="4" d="M389 260 H435" marker-end="url(#arrow)"/>
+<path class="wire " data-step="6" d="M450 275 V306" marker-end="url(#arrow)"/>
+<g class="node output" data-step="6">
+<rect x="392.0" y="306" width="116" height="34" rx="5"/>
+<text x="450" y="328.0">P₂</text>
+</g>
+<path class="wire feedback" data-step="4" d="M355 277 V365 H595 V12 H740 V30" marker-end="url(#arrow)"/>
+<text class="wire-label" x="595" y="97">反馈 C₂</text>
+<g class="node " data-step="7">
+<rect x="682.0" y="30" width="116" height="38" rx="5"/>
+<text x="740" y="54.0">C₂</text>
+</g>
+<path class="wire " data-step="7" d="M740 68 V125" marker-end="url(#arrow)"/>
+<g class="node engine" data-step="8">
+<rect x="682.0" y="125" width="116" height="50" rx="5"/>
+<text x="740" y="147.0">E_K</text>
+<text class="sub" x="740" y="165.0">DES / 64 bit</text>
+</g>
+<path class="wire " data-step="8" d="M740 175 V194" marker-end="url(#arrow)"/>
+<g class="node stream" data-step="8">
+<rect x="695.0" y="194" width="90" height="32" rx="5"/>
+<text x="740" y="215.0">S₃</text>
+</g>
+<path class="wire " data-step="8" d="M740 226 V245" marker-end="url(#arrow)"/>
+<g class="xor" data-step="8">
+<circle cx="740" cy="260" r="15"/>
+<text x="740" y="266">⊕</text>
+</g>
+<g class="node " data-step="7">
+<rect x="611.0" y="243" width="68" height="34" rx="5"/>
+<text x="645" y="265.0">C₃</text>
+</g>
+<path class="wire " data-step="7" d="M679 260 H725" marker-end="url(#arrow)"/>
+<path class="wire " data-step="9" d="M740 275 V306" marker-end="url(#arrow)"/>
+<g class="node output" data-step="9">
+<rect x="682.0" y="306" width="116" height="34" rx="5"/>
+<text x="740" y="328.0">P₃</text>
+</g>
+</svg>
+</div>
+<figcaption>
+<strong>CFB 解密</strong>　P：明文　C：密文　S：密钥流　E_K / D_K：同一密钥下的加密 / 解密运算</figcaption>
+<div class="formula">Pᵢ = Cᵢ ⊕ E_K(Cᵢ₋₁)，C₀ = IV</div>
+</figure>
+<div class="trace-controls js-only">
+<button type="button" data-trace="prev" disabled>上一步</button>
+<button type="button" data-trace="next">下一步</button>
+<button type="button" data-trace="reset" disabled>重置</button>
+<span class="step-counter" aria-label="当前追踪位置">完整图示 / 9 步</span>
+</div>
+<p class="trace-note js-only" aria-live="polite">当前显示完整数据流。选择“下一步”，逐项查看输入、运算和输出。</p>
+<dl class="mode-facts">
+<div>
+<dt>IV / Nonce</dt>
+<dd>IV 必须不可预测，不能仅满足唯一</dd>
+</div>
+<div>
+<dt>填充</dt>
+<dd>按反馈段处理，不使用 PKCS#7</dd>
+</div>
+<div>
+<dt>并行性</dt>
+<dd>加密串行；整块 CFB 解密可并行</dd>
+</div>
+</dl>
+<p class="mode-warning">
+<strong>使用边界</strong>　CFB-s 的 s 是反馈段位数。整块图按 64 位处理；CFB-8 按字节处理，自同步与误差范围取决于段大小。</p>
+</article>
+<article class="mode-panel" id="mode-ofb" data-mode="OFB" aria-labelledby="heading-ofb">
+<div class="mode-heading">
+<span class="mode-name">OFB</span>
+<div>
+<h3 id="heading-ofb">输出反馈</h3>
+<p class="en">Output feedback</p>
+</div>
+</div>
+<p class="mode-summary">反馈线从 Sᵢ 引出，不经过异或点。即使没有明文，也能提前生成整条密钥流。</p>
+<div class="diagram-toolbar js-only">
+<div class="direction-switch" aria-label="OFB图示方向">
+<button type="button" data-direction="enc" aria-pressed="true">加密</button>
+<button type="button" data-direction="dec" aria-pressed="false">解密</button>
+</div>
+<span class="diagram-legend">实线：数据流　虚线：反馈依赖</span>
+</div>
+<figure class="mode-figure" data-view="enc">
+<div class="diagram-scroll svg-diagram" tabindex="0" aria-label="OFB加密接线图，可横向滚动">
+<svg viewBox="0 0 920 400" role="img" aria-labelledby="ofb-enc-title ofb-enc-desc">
+<title id="ofb-enc-title">OFB 加密：三个连续分组的数据流</title>
+<desc id="ofb-enc-desc">E_K 的输出 S_i 反馈到下一次 E_K，密钥流再与当前数据异或，明文和密文均不进入反馈链。箭头表示数据依赖，虚线表示反馈。P 是明文，C 是密文，E 和 D 是分组加密和解密运算，所有分组使用同一密钥 K。</desc>
+<g class="node " data-step="1">
+<rect x="102.0" y="30" width="116" height="38" rx="5"/>
+<text x="160" y="54.0">IV</text>
+</g>
+<path class="wire " data-step="1" d="M160 68 V125" marker-end="url(#arrow)"/>
+<g class="node engine" data-step="2">
+<rect x="102.0" y="125" width="116" height="50" rx="5"/>
+<text x="160" y="147.0">E_K</text>
+<text class="sub" x="160" y="165.0">DES / 64 bit</text>
+</g>
+<path class="wire " data-step="2" d="M160 175 V194" marker-end="url(#arrow)"/>
+<g class="node stream" data-step="2">
+<rect x="115.0" y="194" width="90" height="32" rx="5"/>
+<text x="160" y="215.0">S₁</text>
+</g>
+<path class="wire " data-step="2" d="M160 226 V245" marker-end="url(#arrow)"/>
+<g class="xor" data-step="2">
+<circle cx="160" cy="260" r="15"/>
+<text x="160" y="266">⊕</text>
+</g>
+<g class="node " data-step="1">
+<rect x="31.0" y="243" width="68" height="34" rx="5"/>
+<text x="65" y="265.0">P₁</text>
+</g>
+<path class="wire " data-step="1" d="M99 260 H145" marker-end="url(#arrow)"/>
+<path class="wire " data-step="3" d="M160 275 V306" marker-end="url(#arrow)"/>
+<g class="node output" data-step="3">
+<rect x="102.0" y="306" width="116" height="34" rx="5"/>
+<text x="160" y="328.0">C₁</text>
+</g>
+<path class="wire feedback" data-step="2" d="M205 210 H305 V12 H450 V30" marker-end="url(#arrow)"/>
+<text class="wire-label" x="308" y="193">反馈 S₁</text>
+<g class="node " data-step="4">
+<rect x="392.0" y="30" width="116" height="38" rx="5"/>
+<text x="450" y="54.0">S₁</text>
+</g>
+<path class="wire " data-step="4" d="M450 68 V125" marker-end="url(#arrow)"/>
+<g class="node engine" data-step="5">
+<rect x="392.0" y="125" width="116" height="50" rx="5"/>
+<text x="450" y="147.0">E_K</text>
+<text class="sub" x="450" y="165.0">DES / 64 bit</text>
+</g>
+<path class="wire " data-step="5" d="M450 175 V194" marker-end="url(#arrow)"/>
+<g class="node stream" data-step="5">
+<rect x="405.0" y="194" width="90" height="32" rx="5"/>
+<text x="450" y="215.0">S₂</text>
+</g>
+<path class="wire " data-step="5" d="M450 226 V245" marker-end="url(#arrow)"/>
+<g class="xor" data-step="5">
+<circle cx="450" cy="260" r="15"/>
+<text x="450" y="266">⊕</text>
+</g>
+<g class="node " data-step="4">
+<rect x="321.0" y="243" width="68" height="34" rx="5"/>
+<text x="355" y="265.0">P₂</text>
+</g>
+<path class="wire " data-step="4" d="M389 260 H435" marker-end="url(#arrow)"/>
+<path class="wire " data-step="6" d="M450 275 V306" marker-end="url(#arrow)"/>
+<g class="node output" data-step="6">
+<rect x="392.0" y="306" width="116" height="34" rx="5"/>
+<text x="450" y="328.0">C₂</text>
+</g>
+<path class="wire feedback" data-step="5" d="M495 210 H595 V12 H740 V30" marker-end="url(#arrow)"/>
+<text class="wire-label" x="598" y="193">反馈 S₂</text>
+<g class="node " data-step="7">
+<rect x="682.0" y="30" width="116" height="38" rx="5"/>
+<text x="740" y="54.0">S₂</text>
+</g>
+<path class="wire " data-step="7" d="M740 68 V125" marker-end="url(#arrow)"/>
+<g class="node engine" data-step="8">
+<rect x="682.0" y="125" width="116" height="50" rx="5"/>
+<text x="740" y="147.0">E_K</text>
+<text class="sub" x="740" y="165.0">DES / 64 bit</text>
+</g>
+<path class="wire " data-step="8" d="M740 175 V194" marker-end="url(#arrow)"/>
+<g class="node stream" data-step="8">
+<rect x="695.0" y="194" width="90" height="32" rx="5"/>
+<text x="740" y="215.0">S₃</text>
+</g>
+<path class="wire " data-step="8" d="M740 226 V245" marker-end="url(#arrow)"/>
+<g class="xor" data-step="8">
+<circle cx="740" cy="260" r="15"/>
+<text x="740" y="266">⊕</text>
+</g>
+<g class="node " data-step="7">
+<rect x="611.0" y="243" width="68" height="34" rx="5"/>
+<text x="645" y="265.0">P₃</text>
+</g>
+<path class="wire " data-step="7" d="M679 260 H725" marker-end="url(#arrow)"/>
+<path class="wire " data-step="9" d="M740 275 V306" marker-end="url(#arrow)"/>
+<g class="node output" data-step="9">
+<rect x="682.0" y="306" width="116" height="34" rx="5"/>
+<text x="740" y="328.0">C₃</text>
+</g>
+</svg>
+</div>
+<figcaption>
+<strong>OFB 加密</strong>　P：明文　C：密文　S：密钥流　E_K / D_K：同一密钥下的加密 / 解密运算</figcaption>
+<div class="formula">S₀ = IV；Sᵢ = E_K(Sᵢ₋₁)；Cᵢ = Pᵢ ⊕ Sᵢ</div>
+</figure>
+<figure class="mode-figure" data-view="dec">
+<div class="diagram-scroll svg-diagram" tabindex="0" aria-label="OFB解密接线图，可横向滚动">
+<svg viewBox="0 0 920 400" role="img" aria-labelledby="ofb-dec-title ofb-dec-desc">
+<title id="ofb-dec-title">OFB 解密：三个连续分组的数据流</title>
+<desc id="ofb-dec-desc">E_K 的输出 S_i 反馈到下一次 E_K，密钥流再与当前数据异或，明文和密文均不进入反馈链。箭头表示数据依赖，虚线表示反馈。P 是明文，C 是密文，E 和 D 是分组加密和解密运算，所有分组使用同一密钥 K。</desc>
+<g class="node " data-step="1">
+<rect x="102.0" y="30" width="116" height="38" rx="5"/>
+<text x="160" y="54.0">IV</text>
+</g>
+<path class="wire " data-step="1" d="M160 68 V125" marker-end="url(#arrow)"/>
+<g class="node engine" data-step="2">
+<rect x="102.0" y="125" width="116" height="50" rx="5"/>
+<text x="160" y="147.0">E_K</text>
+<text class="sub" x="160" y="165.0">DES / 64 bit</text>
+</g>
+<path class="wire " data-step="2" d="M160 175 V194" marker-end="url(#arrow)"/>
+<g class="node stream" data-step="2">
+<rect x="115.0" y="194" width="90" height="32" rx="5"/>
+<text x="160" y="215.0">S₁</text>
+</g>
+<path class="wire " data-step="2" d="M160 226 V245" marker-end="url(#arrow)"/>
+<g class="xor" data-step="2">
+<circle cx="160" cy="260" r="15"/>
+<text x="160" y="266">⊕</text>
+</g>
+<g class="node " data-step="1">
+<rect x="31.0" y="243" width="68" height="34" rx="5"/>
+<text x="65" y="265.0">C₁</text>
+</g>
+<path class="wire " data-step="1" d="M99 260 H145" marker-end="url(#arrow)"/>
+<path class="wire " data-step="3" d="M160 275 V306" marker-end="url(#arrow)"/>
+<g class="node output" data-step="3">
+<rect x="102.0" y="306" width="116" height="34" rx="5"/>
+<text x="160" y="328.0">P₁</text>
+</g>
+<path class="wire feedback" data-step="2" d="M205 210 H305 V12 H450 V30" marker-end="url(#arrow)"/>
+<text class="wire-label" x="308" y="193">反馈 S₁</text>
+<g class="node " data-step="4">
+<rect x="392.0" y="30" width="116" height="38" rx="5"/>
+<text x="450" y="54.0">S₁</text>
+</g>
+<path class="wire " data-step="4" d="M450 68 V125" marker-end="url(#arrow)"/>
+<g class="node engine" data-step="5">
+<rect x="392.0" y="125" width="116" height="50" rx="5"/>
+<text x="450" y="147.0">E_K</text>
+<text class="sub" x="450" y="165.0">DES / 64 bit</text>
+</g>
+<path class="wire " data-step="5" d="M450 175 V194" marker-end="url(#arrow)"/>
+<g class="node stream" data-step="5">
+<rect x="405.0" y="194" width="90" height="32" rx="5"/>
+<text x="450" y="215.0">S₂</text>
+</g>
+<path class="wire " data-step="5" d="M450 226 V245" marker-end="url(#arrow)"/>
+<g class="xor" data-step="5">
+<circle cx="450" cy="260" r="15"/>
+<text x="450" y="266">⊕</text>
+</g>
+<g class="node " data-step="4">
+<rect x="321.0" y="243" width="68" height="34" rx="5"/>
+<text x="355" y="265.0">C₂</text>
+</g>
+<path class="wire " data-step="4" d="M389 260 H435" marker-end="url(#arrow)"/>
+<path class="wire " data-step="6" d="M450 275 V306" marker-end="url(#arrow)"/>
+<g class="node output" data-step="6">
+<rect x="392.0" y="306" width="116" height="34" rx="5"/>
+<text x="450" y="328.0">P₂</text>
+</g>
+<path class="wire feedback" data-step="5" d="M495 210 H595 V12 H740 V30" marker-end="url(#arrow)"/>
+<text class="wire-label" x="598" y="193">反馈 S₂</text>
+<g class="node " data-step="7">
+<rect x="682.0" y="30" width="116" height="38" rx="5"/>
+<text x="740" y="54.0">S₂</text>
+</g>
+<path class="wire " data-step="7" d="M740 68 V125" marker-end="url(#arrow)"/>
+<g class="node engine" data-step="8">
+<rect x="682.0" y="125" width="116" height="50" rx="5"/>
+<text x="740" y="147.0">E_K</text>
+<text class="sub" x="740" y="165.0">DES / 64 bit</text>
+</g>
+<path class="wire " data-step="8" d="M740 175 V194" marker-end="url(#arrow)"/>
+<g class="node stream" data-step="8">
+<rect x="695.0" y="194" width="90" height="32" rx="5"/>
+<text x="740" y="215.0">S₃</text>
+</g>
+<path class="wire " data-step="8" d="M740 226 V245" marker-end="url(#arrow)"/>
+<g class="xor" data-step="8">
+<circle cx="740" cy="260" r="15"/>
+<text x="740" y="266">⊕</text>
+</g>
+<g class="node " data-step="7">
+<rect x="611.0" y="243" width="68" height="34" rx="5"/>
+<text x="645" y="265.0">C₃</text>
+</g>
+<path class="wire " data-step="7" d="M679 260 H725" marker-end="url(#arrow)"/>
+<path class="wire " data-step="9" d="M740 275 V306" marker-end="url(#arrow)"/>
+<g class="node output" data-step="9">
+<rect x="682.0" y="306" width="116" height="34" rx="5"/>
+<text x="740" y="328.0">P₃</text>
+</g>
+</svg>
+</div>
+<figcaption>
+<strong>OFB 解密</strong>　P：明文　C：密文　S：密钥流　E_K / D_K：同一密钥下的加密 / 解密运算</figcaption>
+<div class="formula">S₀ = IV；Sᵢ = E_K(Sᵢ₋₁)；Pᵢ = Cᵢ ⊕ Sᵢ</div>
+</figure>
+<div class="trace-controls js-only">
+<button type="button" data-trace="prev" disabled>上一步</button>
+<button type="button" data-trace="next">下一步</button>
+<button type="button" data-trace="reset" disabled>重置</button>
+<span class="step-counter" aria-label="当前追踪位置">完整图示 / 9 步</span>
+</div>
+<p class="trace-note js-only" aria-live="polite">当前显示完整数据流。选择“下一步”，逐项查看输入、运算和输出。</p>
+<dl class="mode-facts">
+<div>
+<dt>IV / Nonce</dt>
+<dd>同一密钥下 IV 唯一，不重复使用</dd>
+</div>
+<div>
+<dt>填充</dt>
+<dd>无需填充，末块截取所需密钥流</dd>
+</div>
+<div>
+<dt>并行性</dt>
+<dd>密钥流生成串行；可提前计算</dd>
+</div>
+</dl>
+<p class="mode-warning">
+<strong>使用边界</strong>　OFB 中“错误不扩散”不表示能抵抗篡改。重用相同密钥与 IV 会重用密钥流，泄露两条明文的异或。</p>
+</article>
+<article class="mode-panel" id="mode-ctr" data-mode="CTR" aria-labelledby="heading-ctr">
+<div class="mode-heading">
+<span class="mode-name">CTR</span>
+<div>
+<h3 id="heading-ctr">计数器</h3>
+<p class="en">Counter mode</p>
+</div>
+</div>
+<p class="mode-summary">N ‖ i 表示固定布局的 nonce 与计数值拼接，合计占满一个分组。无需等待上一块。</p>
+<div class="diagram-toolbar js-only">
+<div class="direction-switch" aria-label="CTR图示方向">
+<button type="button" data-direction="enc" aria-pressed="true">加密</button>
+<button type="button" data-direction="dec" aria-pressed="false">解密</button>
+</div>
+<span class="diagram-legend">实线：数据流　虚线：反馈依赖</span>
+</div>
+<figure class="mode-figure" data-view="enc">
+<div class="diagram-scroll svg-diagram" tabindex="0" aria-label="CTR加密接线图，可横向滚动">
+<svg viewBox="0 0 920 400" role="img" aria-labelledby="ctr-enc-title ctr-enc-desc">
+<title id="ctr-enc-title">CTR 加密：三个连续分组的数据流</title>
+<desc id="ctr-enc-desc">每个独立的计数器块经过 E_K 产生密钥流，再与当前数据异或；各块之间无反馈依赖。箭头表示数据依赖，虚线表示反馈。P 是明文，C 是密文，E 和 D 是分组加密和解密运算，所有分组使用同一密钥 K。</desc>
+<g class="node " data-step="1">
+<rect x="102.0" y="30" width="116" height="38" rx="5"/>
+<text x="160" y="54.0">N ‖ 1</text>
+</g>
+<path class="wire " data-step="1" d="M160 68 V125" marker-end="url(#arrow)"/>
+<g class="node engine" data-step="2">
+<rect x="102.0" y="125" width="116" height="50" rx="5"/>
+<text x="160" y="147.0">E_K</text>
+<text class="sub" x="160" y="165.0">DES / 64 bit</text>
+</g>
+<path class="wire " data-step="2" d="M160 175 V194" marker-end="url(#arrow)"/>
+<g class="node stream" data-step="2">
+<rect x="115.0" y="194" width="90" height="32" rx="5"/>
+<text x="160" y="215.0">S₁</text>
+</g>
+<path class="wire " data-step="2" d="M160 226 V245" marker-end="url(#arrow)"/>
+<g class="xor" data-step="2">
+<circle cx="160" cy="260" r="15"/>
+<text x="160" y="266">⊕</text>
+</g>
+<g class="node " data-step="1">
+<rect x="31.0" y="243" width="68" height="34" rx="5"/>
+<text x="65" y="265.0">P₁</text>
+</g>
+<path class="wire " data-step="1" d="M99 260 H145" marker-end="url(#arrow)"/>
+<path class="wire " data-step="3" d="M160 275 V306" marker-end="url(#arrow)"/>
+<g class="node output" data-step="3">
+<rect x="102.0" y="306" width="116" height="34" rx="5"/>
+<text x="160" y="328.0">C₁</text>
+</g>
+<text class="wire-label" x="160" y="100">独立计数器块</text>
+<g class="node " data-step="4">
+<rect x="392.0" y="30" width="116" height="38" rx="5"/>
+<text x="450" y="54.0">N ‖ 2</text>
+</g>
+<path class="wire " data-step="4" d="M450 68 V125" marker-end="url(#arrow)"/>
+<g class="node engine" data-step="5">
+<rect x="392.0" y="125" width="116" height="50" rx="5"/>
+<text x="450" y="147.0">E_K</text>
+<text class="sub" x="450" y="165.0">DES / 64 bit</text>
+</g>
+<path class="wire " data-step="5" d="M450 175 V194" marker-end="url(#arrow)"/>
+<g class="node stream" data-step="5">
+<rect x="405.0" y="194" width="90" height="32" rx="5"/>
+<text x="450" y="215.0">S₂</text>
+</g>
+<path class="wire " data-step="5" d="M450 226 V245" marker-end="url(#arrow)"/>
+<g class="xor" data-step="5">
+<circle cx="450" cy="260" r="15"/>
+<text x="450" y="266">⊕</text>
+</g>
+<g class="node " data-step="4">
+<rect x="321.0" y="243" width="68" height="34" rx="5"/>
+<text x="355" y="265.0">P₂</text>
+</g>
+<path class="wire " data-step="4" d="M389 260 H435" marker-end="url(#arrow)"/>
+<path class="wire " data-step="6" d="M450 275 V306" marker-end="url(#arrow)"/>
+<g class="node output" data-step="6">
+<rect x="392.0" y="306" width="116" height="34" rx="5"/>
+<text x="450" y="328.0">C₂</text>
+</g>
+<text class="wire-label" x="450" y="100">独立计数器块</text>
+<g class="node " data-step="7">
+<rect x="682.0" y="30" width="116" height="38" rx="5"/>
+<text x="740" y="54.0">N ‖ 3</text>
+</g>
+<path class="wire " data-step="7" d="M740 68 V125" marker-end="url(#arrow)"/>
+<g class="node engine" data-step="8">
+<rect x="682.0" y="125" width="116" height="50" rx="5"/>
+<text x="740" y="147.0">E_K</text>
+<text class="sub" x="740" y="165.0">DES / 64 bit</text>
+</g>
+<path class="wire " data-step="8" d="M740 175 V194" marker-end="url(#arrow)"/>
+<g class="node stream" data-step="8">
+<rect x="695.0" y="194" width="90" height="32" rx="5"/>
+<text x="740" y="215.0">S₃</text>
+</g>
+<path class="wire " data-step="8" d="M740 226 V245" marker-end="url(#arrow)"/>
+<g class="xor" data-step="8">
+<circle cx="740" cy="260" r="15"/>
+<text x="740" y="266">⊕</text>
+</g>
+<g class="node " data-step="7">
+<rect x="611.0" y="243" width="68" height="34" rx="5"/>
+<text x="645" y="265.0">P₃</text>
+</g>
+<path class="wire " data-step="7" d="M679 260 H725" marker-end="url(#arrow)"/>
+<path class="wire " data-step="9" d="M740 275 V306" marker-end="url(#arrow)"/>
+<g class="node output" data-step="9">
+<rect x="682.0" y="306" width="116" height="34" rx="5"/>
+<text x="740" y="328.0">C₃</text>
+</g>
+<text class="wire-label" x="740" y="100">独立计数器块</text>
+</svg>
+</div>
+<figcaption>
+<strong>CTR 加密</strong>　P：明文　C：密文　S：密钥流　E_K / D_K：同一密钥下的加密 / 解密运算</figcaption>
+<div class="formula">Tᵢ = N ‖ i；Cᵢ = Pᵢ ⊕ E_K(Tᵢ)</div>
+</figure>
+<figure class="mode-figure" data-view="dec">
+<div class="diagram-scroll svg-diagram" tabindex="0" aria-label="CTR解密接线图，可横向滚动">
+<svg viewBox="0 0 920 400" role="img" aria-labelledby="ctr-dec-title ctr-dec-desc">
+<title id="ctr-dec-title">CTR 解密：三个连续分组的数据流</title>
+<desc id="ctr-dec-desc">每个独立的计数器块经过 E_K 产生密钥流，再与当前数据异或；各块之间无反馈依赖。箭头表示数据依赖，虚线表示反馈。P 是明文，C 是密文，E 和 D 是分组加密和解密运算，所有分组使用同一密钥 K。</desc>
+<g class="node " data-step="1">
+<rect x="102.0" y="30" width="116" height="38" rx="5"/>
+<text x="160" y="54.0">N ‖ 1</text>
+</g>
+<path class="wire " data-step="1" d="M160 68 V125" marker-end="url(#arrow)"/>
+<g class="node engine" data-step="2">
+<rect x="102.0" y="125" width="116" height="50" rx="5"/>
+<text x="160" y="147.0">E_K</text>
+<text class="sub" x="160" y="165.0">DES / 64 bit</text>
+</g>
+<path class="wire " data-step="2" d="M160 175 V194" marker-end="url(#arrow)"/>
+<g class="node stream" data-step="2">
+<rect x="115.0" y="194" width="90" height="32" rx="5"/>
+<text x="160" y="215.0">S₁</text>
+</g>
+<path class="wire " data-step="2" d="M160 226 V245" marker-end="url(#arrow)"/>
+<g class="xor" data-step="2">
+<circle cx="160" cy="260" r="15"/>
+<text x="160" y="266">⊕</text>
+</g>
+<g class="node " data-step="1">
+<rect x="31.0" y="243" width="68" height="34" rx="5"/>
+<text x="65" y="265.0">C₁</text>
+</g>
+<path class="wire " data-step="1" d="M99 260 H145" marker-end="url(#arrow)"/>
+<path class="wire " data-step="3" d="M160 275 V306" marker-end="url(#arrow)"/>
+<g class="node output" data-step="3">
+<rect x="102.0" y="306" width="116" height="34" rx="5"/>
+<text x="160" y="328.0">P₁</text>
+</g>
+<text class="wire-label" x="160" y="100">独立计数器块</text>
+<g class="node " data-step="4">
+<rect x="392.0" y="30" width="116" height="38" rx="5"/>
+<text x="450" y="54.0">N ‖ 2</text>
+</g>
+<path class="wire " data-step="4" d="M450 68 V125" marker-end="url(#arrow)"/>
+<g class="node engine" data-step="5">
+<rect x="392.0" y="125" width="116" height="50" rx="5"/>
+<text x="450" y="147.0">E_K</text>
+<text class="sub" x="450" y="165.0">DES / 64 bit</text>
+</g>
+<path class="wire " data-step="5" d="M450 175 V194" marker-end="url(#arrow)"/>
+<g class="node stream" data-step="5">
+<rect x="405.0" y="194" width="90" height="32" rx="5"/>
+<text x="450" y="215.0">S₂</text>
+</g>
+<path class="wire " data-step="5" d="M450 226 V245" marker-end="url(#arrow)"/>
+<g class="xor" data-step="5">
+<circle cx="450" cy="260" r="15"/>
+<text x="450" y="266">⊕</text>
+</g>
+<g class="node " data-step="4">
+<rect x="321.0" y="243" width="68" height="34" rx="5"/>
+<text x="355" y="265.0">C₂</text>
+</g>
+<path class="wire " data-step="4" d="M389 260 H435" marker-end="url(#arrow)"/>
+<path class="wire " data-step="6" d="M450 275 V306" marker-end="url(#arrow)"/>
+<g class="node output" data-step="6">
+<rect x="392.0" y="306" width="116" height="34" rx="5"/>
+<text x="450" y="328.0">P₂</text>
+</g>
+<text class="wire-label" x="450" y="100">独立计数器块</text>
+<g class="node " data-step="7">
+<rect x="682.0" y="30" width="116" height="38" rx="5"/>
+<text x="740" y="54.0">N ‖ 3</text>
+</g>
+<path class="wire " data-step="7" d="M740 68 V125" marker-end="url(#arrow)"/>
+<g class="node engine" data-step="8">
+<rect x="682.0" y="125" width="116" height="50" rx="5"/>
+<text x="740" y="147.0">E_K</text>
+<text class="sub" x="740" y="165.0">DES / 64 bit</text>
+</g>
+<path class="wire " data-step="8" d="M740 175 V194" marker-end="url(#arrow)"/>
+<g class="node stream" data-step="8">
+<rect x="695.0" y="194" width="90" height="32" rx="5"/>
+<text x="740" y="215.0">S₃</text>
+</g>
+<path class="wire " data-step="8" d="M740 226 V245" marker-end="url(#arrow)"/>
+<g class="xor" data-step="8">
+<circle cx="740" cy="260" r="15"/>
+<text x="740" y="266">⊕</text>
+</g>
+<g class="node " data-step="7">
+<rect x="611.0" y="243" width="68" height="34" rx="5"/>
+<text x="645" y="265.0">C₃</text>
+</g>
+<path class="wire " data-step="7" d="M679 260 H725" marker-end="url(#arrow)"/>
+<path class="wire " data-step="9" d="M740 275 V306" marker-end="url(#arrow)"/>
+<g class="node output" data-step="9">
+<rect x="682.0" y="306" width="116" height="34" rx="5"/>
+<text x="740" y="328.0">P₃</text>
+</g>
+<text class="wire-label" x="740" y="100">独立计数器块</text>
+</svg>
+</div>
+<figcaption>
+<strong>CTR 解密</strong>　P：明文　C：密文　S：密钥流　E_K / D_K：同一密钥下的加密 / 解密运算</figcaption>
+<div class="formula">Tᵢ = N ‖ i；Pᵢ = Cᵢ ⊕ E_K(Tᵢ)</div>
+</figure>
+<div class="trace-controls js-only">
+<button type="button" data-trace="prev" disabled>上一步</button>
+<button type="button" data-trace="next">下一步</button>
+<button type="button" data-trace="reset" disabled>重置</button>
+<span class="step-counter" aria-label="当前追踪位置">完整图示 / 9 步</span>
+</div>
+<p class="trace-note js-only" aria-live="polite">当前显示完整数据流。选择“下一步”，逐项查看输入、运算和输出。</p>
+<dl class="mode-facts">
+<div>
+<dt>IV / Nonce</dt>
+<dd>同一密钥下，所有计数器块均不得重复</dd>
+</div>
+<div>
+<dt>填充</dt>
+<dd>无需填充，末块截取所需密钥流</dd>
+</div>
+<div>
+<dt>并行性</dt>
+<dd>加密、解密均可并行，可随机访问</dd>
+</div>
+</dl>
+<p class="mode-warning">
+<strong>使用边界</strong>　计数器不得回绕后继续使用，也不能在不同消息中重用计数器块。CTR 本身不认证；GCM 在 CTR 加密之外加入认证机制。</p>
+</article>
+<article class="mode-panel" id="mode-pcbc" data-mode="PCBC" aria-labelledby="heading-pcbc">
+<div class="mode-heading">
+<span class="mode-name">PCBC</span>
+<div>
+<h3 id="heading-pcbc">传播密码分组链接</h3>
+<p class="en">Propagating cipher block chaining</p>
+</div>
+</div>
+<p class="mode-summary">把反馈值命名为 F，可以看清 PCBC 比 CBC 多了什么：下一块同时依赖上一明文和上一密文。</p>
+<div class="diagram-toolbar js-only">
+<div class="direction-switch" aria-label="PCBC图示方向">
+<button type="button" data-direction="enc" aria-pressed="true">加密</button>
+<button type="button" data-direction="dec" aria-pressed="false">解密</button>
+</div>
+<span class="diagram-legend">实线：数据流　虚线：反馈依赖</span>
+</div>
+<figure class="mode-figure" data-view="enc">
+<div class="diagram-scroll svg-diagram" tabindex="0" aria-label="PCBC加密接线图，可横向滚动">
+<svg viewBox="0 0 920 400" role="img" aria-labelledby="pcbc-enc-title pcbc-enc-desc">
+<title id="pcbc-enc-title">PCBC 加密：三个连续分组的数据流</title>
+<desc id="pcbc-enc-desc">使用反馈状态 F_i 等于本块明文与本块密文的异或；下一块依赖此状态，初始 F_0 等于 IV。箭头表示数据依赖，虚线表示反馈。P 是明文，C 是密文，E 和 D 是分组加密和解密运算，所有分组使用同一密钥 K。</desc>
+<g class="node " data-step="1">
+<rect x="102.0" y="30" width="116" height="38" rx="5"/>
+<text x="160" y="54.0">P₁</text>
+</g>
+<path class="wire " data-step="1" d="M160 68 V100" marker-end="url(#arrow)"/>
+<g class="xor" data-step="2">
+<circle cx="160" cy="115" r="15"/>
+<text x="160" y="121">⊕</text>
+</g>
+<path class="wire " data-step="2" d="M160 130 V165" marker-end="url(#arrow)"/>
+<g class="node engine" data-step="2">
+<rect x="102.0" y="165" width="116" height="50" rx="5"/>
+<text x="160" y="187.0">E_K</text>
+<text class="sub" x="160" y="205.0">DES / 64 bit</text>
+</g>
+<path class="wire " data-step="3" d="M160 215 V273" marker-end="url(#arrow)"/>
+<g class="node output" data-step="3">
+<rect x="102.0" y="273" width="116" height="34" rx="5"/>
+<text x="160" y="295.0">C₁</text>
+</g>
+<path class="wire " data-step="3" d="M160 307 V330" marker-end="url(#arrow)"/>
+<g class="xor" data-step="3">
+<circle cx="160" cy="345" r="15"/>
+<text x="160" y="351">⊕</text>
+</g>
+<path class="wire feedback" data-step="3" d="M218 49 H260 V345 H175" marker-end="url(#arrow)"/>
+<text class="wire-label" x="238" y="250">P₁</text>
+<text class="wire-label" x="160" y="386">F₁ = P₁ ⊕ C₁</text>
+<path class="wire feedback" data-step="3" d="M160 360 V370 H305 V115 H435" marker-end="url(#arrow)"/>
+<text class="wire-label" x="315" y="175">反馈 F₁</text>
+<g class="node " data-step="1">
+<rect x="10.5" y="96" width="75" height="38" rx="5"/>
+<text x="48" y="120.0">F₀=IV</text>
+</g>
+<path class="wire feedback" data-step="1" d="M85.5 115 H145" marker-end="url(#arrow)"/>
+<g class="node " data-step="4">
+<rect x="392.0" y="30" width="116" height="38" rx="5"/>
+<text x="450" y="54.0">P₂</text>
+</g>
+<path class="wire " data-step="4" d="M450 68 V100" marker-end="url(#arrow)"/>
+<g class="xor" data-step="5">
+<circle cx="450" cy="115" r="15"/>
+<text x="450" y="121">⊕</text>
+</g>
+<path class="wire " data-step="5" d="M450 130 V165" marker-end="url(#arrow)"/>
+<g class="node engine" data-step="5">
+<rect x="392.0" y="165" width="116" height="50" rx="5"/>
+<text x="450" y="187.0">E_K</text>
+<text class="sub" x="450" y="205.0">DES / 64 bit</text>
+</g>
+<path class="wire " data-step="6" d="M450 215 V273" marker-end="url(#arrow)"/>
+<g class="node output" data-step="6">
+<rect x="392.0" y="273" width="116" height="34" rx="5"/>
+<text x="450" y="295.0">C₂</text>
+</g>
+<path class="wire " data-step="6" d="M450 307 V330" marker-end="url(#arrow)"/>
+<g class="xor" data-step="6">
+<circle cx="450" cy="345" r="15"/>
+<text x="450" y="351">⊕</text>
+</g>
+<path class="wire feedback" data-step="6" d="M508 49 H550 V345 H465" marker-end="url(#arrow)"/>
+<text class="wire-label" x="528" y="250">P₂</text>
+<text class="wire-label" x="450" y="386">F₂ = P₂ ⊕ C₂</text>
+<path class="wire feedback" data-step="6" d="M450 360 V370 H595 V115 H725" marker-end="url(#arrow)"/>
+<text class="wire-label" x="605" y="175">反馈 F₂</text>
+<g class="node " data-step="7">
+<rect x="682.0" y="30" width="116" height="38" rx="5"/>
+<text x="740" y="54.0">P₃</text>
+</g>
+<path class="wire " data-step="7" d="M740 68 V100" marker-end="url(#arrow)"/>
+<g class="xor" data-step="8">
+<circle cx="740" cy="115" r="15"/>
+<text x="740" y="121">⊕</text>
+</g>
+<path class="wire " data-step="8" d="M740 130 V165" marker-end="url(#arrow)"/>
+<g class="node engine" data-step="8">
+<rect x="682.0" y="165" width="116" height="50" rx="5"/>
+<text x="740" y="187.0">E_K</text>
+<text class="sub" x="740" y="205.0">DES / 64 bit</text>
+</g>
+<path class="wire " data-step="9" d="M740 215 V273" marker-end="url(#arrow)"/>
+<g class="node output" data-step="9">
+<rect x="682.0" y="273" width="116" height="34" rx="5"/>
+<text x="740" y="295.0">C₃</text>
+</g>
+<path class="wire " data-step="9" d="M740 307 V330" marker-end="url(#arrow)"/>
+<g class="xor" data-step="9">
+<circle cx="740" cy="345" r="15"/>
+<text x="740" y="351">⊕</text>
+</g>
+<path class="wire feedback" data-step="9" d="M798 49 H840 V345 H755" marker-end="url(#arrow)"/>
+<text class="wire-label" x="818" y="250">P₃</text>
+<text class="wire-label" x="740" y="386">F₃ = P₃ ⊕ C₃</text>
+</svg>
+</div>
+<figcaption>
+<strong>PCBC 加密</strong>　P：明文　C：密文　S：密钥流　E_K / D_K：同一密钥下的加密 / 解密运算</figcaption>
+<div class="formula">F₀ = IV；Cᵢ = E_K(Pᵢ ⊕ Fᵢ₋₁)；Fᵢ = Pᵢ ⊕ Cᵢ</div>
+</figure>
+<figure class="mode-figure" data-view="dec">
+<div class="diagram-scroll svg-diagram" tabindex="0" aria-label="PCBC解密接线图，可横向滚动">
+<svg viewBox="0 0 920 400" role="img" aria-labelledby="pcbc-dec-title pcbc-dec-desc">
+<title id="pcbc-dec-title">PCBC 解密：三个连续分组的数据流</title>
+<desc id="pcbc-dec-desc">使用反馈状态 F_i 等于本块明文与本块密文的异或；下一块依赖此状态，初始 F_0 等于 IV。箭头表示数据依赖，虚线表示反馈。P 是明文，C 是密文，E 和 D 是分组加密和解密运算，所有分组使用同一密钥 K。</desc>
+<g class="node " data-step="1">
+<rect x="102.0" y="30" width="116" height="38" rx="5"/>
+<text x="160" y="54.0">C₁</text>
+</g>
+<path class="wire " data-step="1" d="M160 68 V115" marker-end="url(#arrow)"/>
+<g class="node engine" data-step="2">
+<rect x="102.0" y="115" width="116" height="50" rx="5"/>
+<text x="160" y="137.0">D_K</text>
+<text class="sub" x="160" y="155.0">DES / 64 bit</text>
+</g>
+<path class="wire " data-step="2" d="M160 165 V215" marker-end="url(#arrow)"/>
+<g class="xor" data-step="2">
+<circle cx="160" cy="230" r="15"/>
+<text x="160" y="236">⊕</text>
+</g>
+<path class="wire " data-step="3" d="M160 245 V273" marker-end="url(#arrow)"/>
+<g class="node output" data-step="3">
+<rect x="102.0" y="273" width="116" height="34" rx="5"/>
+<text x="160" y="295.0">P₁</text>
+</g>
+<path class="wire " data-step="3" d="M160 307 V330" marker-end="url(#arrow)"/>
+<g class="xor" data-step="3">
+<circle cx="160" cy="345" r="15"/>
+<text x="160" y="351">⊕</text>
+</g>
+<path class="wire feedback" data-step="3" d="M218 49 H260 V345 H175" marker-end="url(#arrow)"/>
+<text class="wire-label" x="238" y="250">C₁</text>
+<text class="wire-label" x="160" y="386">F₁ = P₁ ⊕ C₁</text>
+<path class="wire feedback" data-step="3" d="M160 360 V370 H305 V230 H435" marker-end="url(#arrow)"/>
+<text class="wire-label" x="315" y="290">反馈 F₁</text>
+<g class="node " data-step="1">
+<rect x="10.5" y="211" width="75" height="38" rx="5"/>
+<text x="48" y="235.0">F₀=IV</text>
+</g>
+<path class="wire feedback" data-step="1" d="M85.5 230 H145" marker-end="url(#arrow)"/>
+<g class="node " data-step="4">
+<rect x="392.0" y="30" width="116" height="38" rx="5"/>
+<text x="450" y="54.0">C₂</text>
+</g>
+<path class="wire " data-step="4" d="M450 68 V115" marker-end="url(#arrow)"/>
+<g class="node engine" data-step="5">
+<rect x="392.0" y="115" width="116" height="50" rx="5"/>
+<text x="450" y="137.0">D_K</text>
+<text class="sub" x="450" y="155.0">DES / 64 bit</text>
+</g>
+<path class="wire " data-step="5" d="M450 165 V215" marker-end="url(#arrow)"/>
+<g class="xor" data-step="5">
+<circle cx="450" cy="230" r="15"/>
+<text x="450" y="236">⊕</text>
+</g>
+<path class="wire " data-step="6" d="M450 245 V273" marker-end="url(#arrow)"/>
+<g class="node output" data-step="6">
+<rect x="392.0" y="273" width="116" height="34" rx="5"/>
+<text x="450" y="295.0">P₂</text>
+</g>
+<path class="wire " data-step="6" d="M450 307 V330" marker-end="url(#arrow)"/>
+<g class="xor" data-step="6">
+<circle cx="450" cy="345" r="15"/>
+<text x="450" y="351">⊕</text>
+</g>
+<path class="wire feedback" data-step="6" d="M508 49 H550 V345 H465" marker-end="url(#arrow)"/>
+<text class="wire-label" x="528" y="250">C₂</text>
+<text class="wire-label" x="450" y="386">F₂ = P₂ ⊕ C₂</text>
+<path class="wire feedback" data-step="6" d="M450 360 V370 H595 V230 H725" marker-end="url(#arrow)"/>
+<text class="wire-label" x="605" y="290">反馈 F₂</text>
+<g class="node " data-step="7">
+<rect x="682.0" y="30" width="116" height="38" rx="5"/>
+<text x="740" y="54.0">C₃</text>
+</g>
+<path class="wire " data-step="7" d="M740 68 V115" marker-end="url(#arrow)"/>
+<g class="node engine" data-step="8">
+<rect x="682.0" y="115" width="116" height="50" rx="5"/>
+<text x="740" y="137.0">D_K</text>
+<text class="sub" x="740" y="155.0">DES / 64 bit</text>
+</g>
+<path class="wire " data-step="8" d="M740 165 V215" marker-end="url(#arrow)"/>
+<g class="xor" data-step="8">
+<circle cx="740" cy="230" r="15"/>
+<text x="740" y="236">⊕</text>
+</g>
+<path class="wire " data-step="9" d="M740 245 V273" marker-end="url(#arrow)"/>
+<g class="node output" data-step="9">
+<rect x="682.0" y="273" width="116" height="34" rx="5"/>
+<text x="740" y="295.0">P₃</text>
+</g>
+<path class="wire " data-step="9" d="M740 307 V330" marker-end="url(#arrow)"/>
+<g class="xor" data-step="9">
+<circle cx="740" cy="345" r="15"/>
+<text x="740" y="351">⊕</text>
+</g>
+<path class="wire feedback" data-step="9" d="M798 49 H840 V345 H755" marker-end="url(#arrow)"/>
+<text class="wire-label" x="818" y="250">C₃</text>
+<text class="wire-label" x="740" y="386">F₃ = P₃ ⊕ C₃</text>
+</svg>
+</div>
+<figcaption>
+<strong>PCBC 解密</strong>　P：明文　C：密文　S：密钥流　E_K / D_K：同一密钥下的加密 / 解密运算</figcaption>
+<div class="formula">F₀ = IV；Pᵢ = D_K(Cᵢ) ⊕ Fᵢ₋₁；Fᵢ = Pᵢ ⊕ Cᵢ</div>
+</figure>
+<div class="trace-controls js-only">
+<button type="button" data-trace="prev" disabled>上一步</button>
+<button type="button" data-trace="next">下一步</button>
+<button type="button" data-trace="reset" disabled>重置</button>
+<span class="step-counter" aria-label="当前追踪位置">完整图示 / 9 步</span>
+</div>
+<p class="trace-note js-only" aria-live="polite">当前显示完整数据流。选择“下一步”，逐项查看输入、运算和输出。</p>
+<dl class="mode-facts">
+<div>
+<dt>IV / Nonce</dt>
+<dd>双方使用相同初始状态 F₀ = IV</dd>
+</div>
+<div>
+<dt>填充</dt>
+<dd>需要整块输入，通常配合填充</dd>
+</div>
+<div>
+<dt>并行性</dt>
+<dd>加密、解密均串行</dd>
+</div>
+</dl>
+<p class="mode-warning">
+<strong>使用边界</strong>　历史上用于 Kerberos v4，作为教学对比保留。错误传播不是完整性认证，相邻密文块交换等篡改不能由传播性可靠检测。</p>
+</article>
+</section>
+<section class="section" id="compare">
+<h2>差别藏在依赖关系里。</h2>
+<p class="section-intro">加密要等待什么，解密端已经知道什么？把这两个问题分开，就能理解为什么 CBC、CFB 加密串行，而解密可以并行。</p>
+<div class="table-scroll" tabindex="0" aria-label="六种模式对照表，可横向滚动">
+<table class="comparison">
+<caption class="small muted" style="text-align:left;padding-bottom:12px">以整块 DES 模式为例；“随机访问”指获取指定块所需的数据条件。</caption>
+<thead>
+<tr>
+<th scope="col">模式</th>
+<th scope="col">初始化要求</th>
+<th scope="col">填充</th>
+<th scope="col">并行：加 / 解</th>
+<th scope="col">访问指定块</th>
+<th scope="col">密文单比特错误</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="mode-col">ECB</td>
+<td>不使用</td>
+<td>需要</td>
+<td>是 / 是</td>
+<td>支持</td>
+<td>该块整体</td>
+</tr>
+<tr>
+<td class="mode-col">CBC</td>
+<td>不可预测 IV</td>
+<td>需要</td>
+<td>否 / 是</td>
+<td>解密需前一密文</td>
+<td>该块整体 + 下一块对应位</td>
+</tr>
+<tr>
+<td class="mode-col">CFB-64</td>
+<td>不可预测 IV</td>
+<td>无 PKCS#7</td>
+<td>否 / 是</td>
+<td>解密需前一密文</td>
+<td>该块对应位 + 下一块整体</td>
+</tr>
+<tr>
+<td class="mode-col">OFB</td>
+<td>唯一 IV</td>
+<td>无需</td>
+<td>密钥流串行</td>
+<td>需生成前序密钥流</td>
+<td>仅对应位</td>
+</tr>
+<tr>
+<td class="mode-col">CTR</td>
+<td>计数器块不重复</td>
+<td>无需</td>
+<td>是 / 是</td>
+<td>支持</td>
+<td>仅对应位</td>
+</tr>
+<tr>
+<td class="mode-col">PCBC</td>
+<td>初始状态 IV</td>
+<td>通常需要</td>
+<td>否 / 否</td>
+<td>需前序状态</td>
+<td>通常影响本块及其后所有块</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="error-study">
+<div>
+<h3>把 C₂ 的一位翻转。</h3>
+<p>观察接收端解密得到的 P₁…P₅。假设分组边界不变、没有插入或删除位；这里仅比较一次孤立的单比特错误。</p>
+<div class="error-key">
+<span>
+<span class="sample same">
+</span>未受影响</span>
+<span>
+<span class="sample flip">↕</span>只有对应的一位翻转</span>
+<span>
+<span class="sample full">▧</span>整块受影响，具体变化不可预测</span>
+</div>
+</div>
+<div class="error-matrix" role="group" aria-label="六种模式下 C2 单比特错误的明文影响范围">
+<div class="error-row" aria-hidden="true">
+<span class="name">明文</span>
+<span class="small mono" style="text-align:center">P₁</span>
+<span class="small mono" style="text-align:center">P₂</span>
+<span class="small mono" style="text-align:center">P₃</span>
+<span class="small mono" style="text-align:center">P₄</span>
+<span class="small mono" style="text-align:center">P₅</span>
+</div>
+<div class="error-row">
+<span class="name">ECB</span>
+<span class="error-block same" aria-label="第1块：不受影响">不变</span>
+<span class="error-block full" aria-label="第2块：整块受影响">整块</span>
+<span class="error-block same" aria-label="第3块：不受影响">不变</span>
+<span class="error-block same" aria-label="第4块：不受影响">不变</span>
+<span class="error-block same" aria-label="第5块：不受影响">不变</span>
+</div>
+<div class="error-row">
+<span class="name">CBC</span>
+<span class="error-block same" aria-label="第1块：不受影响">不变</span>
+<span class="error-block full" aria-label="第2块：整块受影响">整块</span>
+<span class="error-block flip" aria-label="第3块：对应位翻转">1 bit</span>
+<span class="error-block same" aria-label="第4块：不受影响">不变</span>
+<span class="error-block same" aria-label="第5块：不受影响">不变</span>
+</div>
+<div class="error-row">
+<span class="name">CFB-64</span>
+<span class="error-block same" aria-label="第1块：不受影响">不变</span>
+<span class="error-block flip" aria-label="第2块：对应位翻转">1 bit</span>
+<span class="error-block full" aria-label="第3块：整块受影响">整块</span>
+<span class="error-block same" aria-label="第4块：不受影响">不变</span>
+<span class="error-block same" aria-label="第5块：不受影响">不变</span>
+</div>
+<div class="error-row">
+<span class="name">OFB</span>
+<span class="error-block same" aria-label="第1块：不受影响">不变</span>
+<span class="error-block flip" aria-label="第2块：对应位翻转">1 bit</span>
+<span class="error-block same" aria-label="第3块：不受影响">不变</span>
+<span class="error-block same" aria-label="第4块：不受影响">不变</span>
+<span class="error-block same" aria-label="第5块：不受影响">不变</span>
+</div>
+<div class="error-row">
+<span class="name">CTR</span>
+<span class="error-block same" aria-label="第1块：不受影响">不变</span>
+<span class="error-block flip" aria-label="第2块：对应位翻转">1 bit</span>
+<span class="error-block same" aria-label="第3块：不受影响">不变</span>
+<span class="error-block same" aria-label="第4块：不受影响">不变</span>
+<span class="error-block same" aria-label="第5块：不受影响">不变</span>
+</div>
+<div class="error-row">
+<span class="name">PCBC</span>
+<span class="error-block same" aria-label="第1块：不受影响">不变</span>
+<span class="error-block full" aria-label="第2块：整块受影响">整块</span>
+<span class="error-block full" aria-label="第3块：整块受影响">整块</span>
+<span class="error-block full" aria-label="第4块：整块受影响">整块</span>
+<span class="error-block full" aria-label="第5块：整块受影响">整块</span>
+</div>
+</div>
+</div>
+<div class="auth-note">
+<h3>错误传播，不能代替认证。</h3>
+<p>CTR 与 OFB 的“仅对应位翻转”，也意味着攻击者可以有针对性地改变明文。CBC、CFB、PCBC 的错误扩散同样不能证明消息未被篡改。实际系统应使用经过分析的认证加密方案或正确的认证组合。</p>
+<p>
+<strong>AES-GCM</strong> 使用适用于 128 位分组密码的计数器加密与 GHASH 认证，并纳入关联数据及长度等信息生成标签。它不是给 DES-CTR 随意加一个哈希。接收端必须验证标签，nonce 也有严格要求。</p>
+</div>
+</section>
+<section class="section" id="guomi">
+<h2>国密算法，各有分工。</h2>
+<p class="section-intro">“SM” 是名称家族，不是统一功能。SM2 做公钥密码，SM3 做摘要，SM4 做分组加密；ZUC 则产生密钥流。</p>
+<div class="gm-list">
+<article class="gm-item">
+<strong>SM1</strong>
+<div>
+<h3>非公开分组算法</h3>
+<p>常见公开资料列为 128 bit 密钥和分组。内部算法与轮密钥不公开，应以具体规范与产品为准。</p>
+</div>
+</article>
+<article class="gm-item">
+<strong>SM2</strong>
+<div>
+<h3>公钥加密、签名、密钥交换</h3>
+<p>256 bit 曲线；原始签名 64 B。GB/T 32918 系列。</p>
+</div>
+</article>
+<article class="gm-item">
+<strong>SM3</strong>
+<div>
+<h3>杂凑</h3>
+<p>512 bit 消息块，256 bit 摘要。GB/T 32905-2016。</p>
+</div>
+</article>
+<article class="gm-item">
+<strong>SM4</strong>
+<div>
+<h3>公开分组密码</h3>
+<p>密钥与分组均为 128 bit，32 轮。GB/T 32907-2016。</p>
+</div>
+</article>
+<article class="gm-item">
+<strong>SM7</strong>
+<div>
+<h3>面向 IC 卡等场景</h3>
+<p>公开参数资料有限，报告中的密钥与分组长度不在此作统一结论。</p>
+</div>
+</article>
+<article class="gm-item">
+<strong>SM9</strong>
+<div>
+<h3>基于身份的密码体系</h3>
+<p>系统主密钥、主公钥与用户身份共同参与。GB/T 38635 系列。</p>
+</div>
+</article>
+<article class="gm-item">
+<strong>ZUC</strong>
+<div>
+<h3>序列密码</h3>
+<p>ZUC-128 使用 128 bit 密钥与 IV，每次产生 32 bit 密钥字。GB/T 33133 系列。</p>
+</div>
+</article>
+</div>
+</section>
+<section class="section" id="padding">
+<h2>最后一块，如何补齐？</h2>
+<p class="section-intro">这里演示 DES 的 8 字节分组。PKCS#7 还适用于其他分组长度：如果缺 n 字节，就补 n 个数值为 n 的字节。</p>
+<div class="padding-lab">
+<div>
+<div class="padding-controls js-only">
+<label for="plain-length">调整明文长度，查看补齐结果</label>
+<input type="range" min="1" max="16" value="13" id="plain-length" aria-describedby="padding-explain">
+<p>
+<output id="plain-length-value" for="plain-length">13</output> 字节明文</p>
+</div>
+<p id="padding-explain" aria-live="polite">13 字节明文，补 3 字节：03 03 03，总长 16 字节。</p>
+<p>00 表示示例数据字节；绿色字节是填充，不是加密结果。</p>
+</div>
+<div class="byte-groups" id="padding-bytes" aria-label="13 字节数据后跟三个 03 填充字节">
+<div class="byte-group">
+<span class="byte ">00</span>
+<span class="byte ">00</span>
+<span class="byte ">00</span>
+<span class="byte ">00</span>
+<span class="byte ">00</span>
+<span class="byte ">00</span>
+<span class="byte ">00</span>
+<span class="byte ">00</span>
+</div>
+<div class="byte-group">
+<span class="byte ">00</span>
+<span class="byte ">00</span>
+<span class="byte ">00</span>
+<span class="byte ">00</span>
+<span class="byte ">00</span>
+<span class="byte pad">03</span>
+<span class="byte pad">03</span>
+<span class="byte pad">03</span>
+</div>
+</div>
+</div>
+<p class="pad-static">
+<strong>整除时也要补：</strong>8 字节明文追加 <code>08 08 08 08 08 08 08 08</code>，得到 16 字节。解密后检查填充再移除，才能区分真实结尾与填充。</p>
+<div class="padding-rules">
+<article>
+<h3>PKCS#5</h3>
+<p>填充规则与 PKCS#7 相同，原始定义针对 8 字节分组。某些接口借用这个名称支持更大分组，应查看接口约定。</p>
+</article>
+<article>
+<h3>ANSI X9.23</h3>
+<p>前面的填充字节置零，最后一字节记录填充长度。缺 3 字节时为 <code>00 00 03</code>。</p>
+</article>
+<article>
+<h3>ISO 10126</h3>
+<p>前面的填充字节随机，最后一字节记录长度。作为历史方案了解，不作为新设计默认。</p>
+</article>
+<article>
+<h3>Zero padding</h3>
+<p>补零至分组边界。如果原文也以零结尾，单靠填充无法区分，必须另有长度约定。</p>
+</article>
+<article>
+<h3>CFB / OFB / CTR</h3>
+<p>不需要 PKCS#7。OFB 与 CTR 的末块使用所需长度的密钥流；CFB 按选定反馈段大小及具体接口处理。</p>
+</article>
+<article>
+<h3>填充不是认证</h3>
+<p>攻击者可能通过不同的填充错误响应推断信息。不要让错误信息或处理时序泄露填充是否有效。</p>
+</article>
+</div>
+</section>
+<section class="section" id="reference">
+<h2>需要时，再查参数。</h2>
+<p class="section-intro">记忆主干，查阅细节。默认单位为 bit，B 表示字节；“轮密钥 / 结构”列同时容纳不同算法的组织方式，不表示它们有同一种轮密钥。</p>
+<div class="search-row js-only">
+<div class="search-field">
+<label for="algorithm-search">搜索算法、类别或关键参数</label>
+<input type="search" id="algorithm-search" placeholder="例如 AES、国密、256、签名" aria-describedby="search-help" aria-controls="quick-table" autocomplete="off">
+</div>
+<span class="search-count" id="search-count" role="status">36 项</span>
+</div>
+<p class="search-help js-only" id="search-help">空格分隔多个关键词，同时匹配；清空后恢复全部条目。</p>
+<div class="table-scroll" tabindex="0" aria-label="算法关键参数速查，可横向滚动">
+<table class="comparison quick-table" id="quick-table">
+<thead>
+<tr>
+<th scope="col">算法</th>
+<th scope="col">类别</th>
+<th scope="col">密钥 / 参数</th>
+<th scope="col">分组 / 输入</th>
+<th scope="col">轮密钥 / 结构</th>
+<th scope="col">输出</th>
+<th scope="col">记忆要点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DES</td>
+<td>分组</td>
+<td>56 有效</td>
+<td>64</td>
+<td>48 × 16</td>
+<td>64</td>
+<td>64 位密钥材料含校验位</td>
+</tr>
+<tr>
+<td>3DES</td>
+<td>分组</td>
+<td>168 / 112 / 56</td>
+<td>64</td>
+<td>48 × 48</td>
+<td>64</td>
+<td>三密钥强度约 112 位</td>
+</tr>
+<tr>
+<td>AES</td>
+<td>分组</td>
+<td>128 / 192 / 256</td>
+<td>128</td>
+<td>128 × 11/13/15</td>
+<td>128</td>
+<td>10 / 12 / 14 轮</td>
+</tr>
+<tr>
+<td>IDEA</td>
+<td>分组</td>
+<td>128</td>
+<td>64</td>
+<td>16 × 52</td>
+<td>64</td>
+<td>8 轮 + 输出变换</td>
+</tr>
+<tr>
+<td>SM4</td>
+<td>分组</td>
+<td>128</td>
+<td>128</td>
+<td>32 × 32</td>
+<td>128</td>
+<td>32 轮，国密</td>
+</tr>
+<tr>
+<td>SM1</td>
+<td>分组</td>
+<td>128（公开资料）</td>
+<td>128（公开资料）</td>
+<td>未公开</td>
+<td>128（公开资料）</td>
+<td>非公开；以厂商与规范为准</td>
+</tr>
+<tr>
+<td>SM7</td>
+<td>分组</td>
+<td>见具体规范</td>
+<td>见具体规范</td>
+<td>未公开</td>
+<td>见具体规范</td>
+<td>报告数值不作通用断言</td>
+</tr>
+<tr>
+<td>Blowfish</td>
+<td>分组</td>
+<td>32-448</td>
+<td>64</td>
+<td>P 数组 + S 盒</td>
+<td>64</td>
+<td>16 轮，短分组</td>
+</tr>
+<tr>
+<td>RC5</td>
+<td>分组</td>
+<td>0-2040</td>
+<td>32 / 64 / 128</td>
+<td>由参数决定</td>
+<td>同分组</td>
+<td>RC5-w/r/b 可变参数</td>
+</tr>
+<tr>
+<td>RC6</td>
+<td>分组</td>
+<td>可变；AES 候选为 128/192/256</td>
+<td>128（w=32）</td>
+<td>32 × 44（r=20）</td>
+<td>128</td>
+<td>AES 候选参数：20 轮</td>
+</tr>
+<tr>
+<td>CAST-128</td>
+<td>分组</td>
+<td>40-128</td>
+<td>64</td>
+<td>16 组，掩码与旋转子密钥</td>
+<td>64</td>
+<td>≤80 位密钥时 12 轮，否则 16 轮</td>
+</tr>
+<tr>
+<td>Camellia</td>
+<td>分组</td>
+<td>128 / 192 / 256</td>
+<td>128</td>
+<td>由密钥长度决定</td>
+<td>128</td>
+<td>18 / 24 / 24 轮</td>
+</tr>
+<tr>
+<td>ARIA</td>
+<td>分组</td>
+<td>128 / 192 / 256</td>
+<td>128</td>
+<td>128 × 13/15/17</td>
+<td>128</td>
+<td>12 / 14 / 16 轮</td>
+</tr>
+<tr>
+<td>Serpent</td>
+<td>分组</td>
+<td>128 / 192 / 256</td>
+<td>128</td>
+<td>128 × 33</td>
+<td>128</td>
+<td>32 轮</td>
+</tr>
+<tr>
+<td>RC4</td>
+<td>流</td>
+<td>8-2048（字节倍数）</td>
+<td>不适用</td>
+<td>256 B 置换状态</td>
+<td>明文等长</td>
+<td>历史常见 40/128 位；已弃用</td>
+</tr>
+<tr>
+<td>ZUC-128</td>
+<td>流</td>
+<td>128；IV 128</td>
+<td>不适用</td>
+<td>内部状态递推</td>
+<td>32 位/字</td>
+<td>LTE EEA3 / EIA3</td>
+</tr>
+<tr>
+<td>ZUC-256</td>
+<td>流</td>
+<td>256；IV 依版本</td>
+<td>不适用</td>
+<td>内部状态递推</td>
+<td>32 位/字</td>
+<td>报告列举 184 位 IV 表示</td>
+</tr>
+<tr>
+<td>ChaCha20-IETF</td>
+<td>流</td>
+<td>256；nonce 96</td>
+<td>不适用</td>
+<td>ARX 状态</td>
+<td>明文等长</td>
+<td>通常配 Poly1305</td>
+</tr>
+<tr>
+<td>Salsa20</td>
+<td>流</td>
+<td>128 / 256；nonce 64</td>
+<td>不适用</td>
+<td>ARX 状态</td>
+<td>明文等长</td>
+<td>参数不可与 IETF ChaCha 混用</td>
+</tr>
+<tr>
+<td>RSA</td>
+<td>非对称</td>
+<td>模数 2048 / 3072 / 4096</td>
+<td>依填充与模数</td>
+<td>不适用</td>
+<td>模数字节数</td>
+<td>OAEP 与 v1.5 输入上限不同</td>
+</tr>
+<tr>
+<td>ECC / ECDSA</td>
+<td>非对称</td>
+<td>依曲线，如 P-256</td>
+<td>依方案</td>
+<td>不适用</td>
+<td>P-256 原始签名 64 B</td>
+<td>未压缩点编码常见 65 B</td>
+</tr>
+<tr>
+<td>SM2</td>
+<td>非对称</td>
+<td>256</td>
+<td>依方案与编码</td>
+<td>不适用</td>
+<td>原始签名 64 B</td>
+<td>r、s 各 32 B；DER 长度可变</td>
+</tr>
+<tr>
+<td>SM9</td>
+<td>标识密码</td>
+<td>256 位素域参数</td>
+<td>依具体方案</td>
+<td>不适用</td>
+<td>依方案与编码</td>
+<td>身份 + 系统参数；双线性对</td>
+</tr>
+<tr>
+<td>ElGamal</td>
+<td>非对称</td>
+<td>依有限域群参数</td>
+<td>依群与编码</td>
+<td>不适用</td>
+<td>两个群元素</td>
+<td>离散对数；非通用“字节数翻倍”</td>
+</tr>
+<tr>
+<td>DSA</td>
+<td>签名</td>
+<td>p/q 参数</td>
+<td>对消息摘要签名</td>
+<td>不适用</td>
+<td>2 个 q 长度整数</td>
+<td>传统有限域签名</td>
+</tr>
+<tr>
+<td>Ed25519</td>
+<td>签名</td>
+<td>32 B 种子</td>
+<td>任意长度消息</td>
+<td>不适用</td>
+<td>签名 64 B</td>
+<td>公钥 32 B</td>
+</tr>
+<tr>
+<td>MD5</td>
+<td>哈希</td>
+<td>无</td>
+<td>512</td>
+<td>64 步</td>
+<td>128</td>
+<td>碰撞已实用化</td>
+</tr>
+<tr>
+<td>SHA-1</td>
+<td>哈希</td>
+<td>无</td>
+<td>512</td>
+<td>80 步</td>
+<td>160</td>
+<td>碰撞已实用化</td>
+</tr>
+<tr>
+<td>SHA-224</td>
+<td>哈希</td>
+<td>无</td>
+<td>512</td>
+<td>64 步</td>
+<td>224</td>
+<td>SHA-2 家族</td>
+</tr>
+<tr>
+<td>SHA-256</td>
+<td>哈希</td>
+<td>无</td>
+<td>512</td>
+<td>64 步</td>
+<td>256</td>
+<td>32 位字运算</td>
+</tr>
+<tr>
+<td>SHA-384</td>
+<td>哈希</td>
+<td>无</td>
+<td>1024</td>
+<td>80 步</td>
+<td>384</td>
+<td>SHA-512 结构，不同 IV 与截断</td>
+</tr>
+<tr>
+<td>SHA-512</td>
+<td>哈希</td>
+<td>无</td>
+<td>1024</td>
+<td>80 步</td>
+<td>512</td>
+<td>64 位字运算</td>
+</tr>
+<tr>
+<td>SHA3-224/256/384/512</td>
+<td>哈希</td>
+<td>无</td>
+<td>速率 1152/1088/832/576</td>
+<td>24 轮置换</td>
+<td>224 / 256 / 384 / 512</td>
+<td>海绵速率不是传统压缩块</td>
+</tr>
+<tr>
+<td>SHAKE128 / SHAKE256</td>
+<td>XOF</td>
+<td>无</td>
+<td>速率 1344 / 1088</td>
+<td>24 轮置换</td>
+<td>可指定长度</td>
+<td>128/256 指安全强度类别</td>
+</tr>
+<tr>
+<td>SM3</td>
+<td>哈希</td>
+<td>无</td>
+<td>512</td>
+<td>64 步</td>
+<td>256</td>
+<td>国密杂凑</td>
+</tr>
+<tr>
+<td>HMAC</td>
+<td>认证码</td>
+<td>有密钥，长度依方案</td>
+<td>依底层哈希</td>
+<td>内外两层哈希</td>
+<td>可截断，依协议</td>
+<td>普通哈希不能代替 MAC</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="empty" id="search-empty" hidden>
+<strong>没有匹配的参数条目。</strong>
+<p>试试算法简称或更短的关键词，也可以清空搜索查看全部内容。</p>
+<button class="chip" type="button" id="clear-search" style="margin-top:15px">清空搜索</button>
+</div>
+</section>
+<section class="section sources" id="sources">
+<h2>读报告，也核对边界。</h2>
+<p class="section-intro">本教程依据《密码算法与工作模式调研报告》重新组织内容与图示。下列更正直接影响学习结论；原始报告保持不变。</p>
+<details open>
+<summary>IV、反馈方向与 PCBC 公式</summary>
+<p>CBC 与 CFB 的 IV 应不可预测，OFB 的 IV 应在同一密钥下唯一。原报告 CFB 的“唯一即可”不充分。解密图已按数据依赖重新绘制。PCBC 统一使用 F₀ = IV、Fᵢ = Pᵢ ⊕ Cᵢ，删除原文中含当前 Cᵢ 的自引用加密公式。PCBC 的误差传播不构成认证保证。</p>
+</details>
+<details open>
+<summary>3DES 状态与安全强度</summary>
+<p>NIST 自 2024 年 1 月 1 日起撤回 SP 800-67 Rev. 2，不再允许用 TDEA 施加新的密码保护；对已经保护的数据，解密、解包和 MAC 验证仍有例外。“允许使用至 2030 年”不适用于新增加密。168 位密钥材料与约 112 位安全强度也应分开。</p>
+</details>
+<details open>
+<summary>签名、非公开算法与参数歧义</summary>
+<p>SM2 的原始 r、s 各为 32 字节，不是 32 位；65 字节常见于未压缩点编码。非公开算法的参数仅按可确认范围陈述，尤其不把 SM7 的 128 位参数作为统一结论。IDEA 的乘法模数写作 (2¹⁶+1)。RC4 的完整字节密钥范围、CAST-128 的轮数及 Camellia 的轮数已调整。</p>
+</details>
+<details open>
+<summary>现代应用与模式的适用范围</summary>
+<p>CTR 本身不是认证加密；GCM 也不是任意 CTR 加上普通摘要。TLS 1.3 使用认证加密套件，磁盘加密则常见 XTS 等专用模式。教程不沿用“CTR/GCM 是所有场景首选”或“PCBC 可检测整体篡改”等绝对表述。</p>
+</details>
+<div class="source-links">
+<a href="https://nvlpubs.nist.gov/nistpubs/legacy/sp/nistspecialpublication800-38a.pdf" target="_blank" rel="noopener noreferrer">NIST SP 800-38A：五种保密模式、IV 与误差特性 ↗</a>
+<a href="https://csrc.nist.gov/News/2023/nist-to-withdraw-sp-800-67-rev-2" target="_blank" rel="noopener noreferrer">NIST：TDEA 标准撤回与历史数据例外 ↗</a>
+<a href="https://csrc.nist.gov/pubs/fips/197/final" target="_blank" rel="noopener noreferrer">FIPS 197：AES 算法与密钥扩展 ↗</a>
+<a href="https://www.rfc-editor.org/rfc/rfc9563.html" target="_blank" rel="noopener noreferrer">RFC 9563：SM2 原始签名 r、s 的编码 ↗</a>
+<a href="https://www.rfc-editor.org/rfc/rfc8017.html" target="_blank" rel="noopener noreferrer">RFC 8017：RSA 编码与 OAEP 输入长度 ↗</a>
+<a href="https://csrc.nist.gov/pubs/sp/800/38/d/final" target="_blank" rel="noopener noreferrer">NIST SP 800-38D：GCM 认证加密 ↗</a>
+<a href="密码算法与工作模式调研报告.md">项目原始调研报告 ↗</a>
+</div>
+</section>
+<footer class="footer">
+<p>密码算法与工作模式图解教程</p>
+<p>依据 2026-10-15 调研报告整理；模式图为结构示意。</p>
+</footer>
+</main>
+</div>
+<script>
+(function(){
+'use strict';
+// Pure HTML is the readable baseline; only successful initialization enables controls.
+var root=document.documentElement;
+var theme=document.getElementById('theme');
+try{var saved=localStorage.getItem('crypto-tutorial-theme');if(['light','dark','system'].includes(saved))theme.value=saved;}catch(e){}
+function setTheme(){if(theme.value==='system')root.removeAttribute('data-theme');else root.dataset.theme=theme.value;try{localStorage.setItem('crypto-tutorial-theme',theme.value);}catch(e){}}
+setTheme();theme.addEventListener('change',setTheme);
+var tabs=Array.from(document.querySelectorAll('.mode-tab'));
+var panels=Array.from(document.querySelectorAll('.mode-panel'));
+var state=new Map();
+var steps={"ECB": ["直接读取当前输入块。其他块不参与本块运算。", "用同一密钥 K 执行当前块的 E_K 或 D_K。", "输出当前块，无需更新反馈状态。"], "CBC": ["准备当前输入和上一密文；第一块使用 IV。", "加密先异或再 E_K；解密先 D_K 再异或。", "输出结果。加密时将本块密文送入下一块；解密直接取已有密文。"], "CFB": ["取上一密文作为加密器输入；第一块取 IV，并准备本块明文或密文。", "始终用 E_K 产生密钥流 Sᵢ，再与当前数据异或。解密也不用 D_K。", "输出结果，将本块密文作为下一次的反馈值；解密时该密文已知。"], "OFB": ["取上一密钥流块作为输入；第一块取 IV。", "用 E_K 生成 Sᵢ，并将 Sᵢ 与当前数据异或。", "输出结果。下一块使用 Sᵢ，既不反馈明文也不反馈密文。"], "CTR": ["构造本块唯一的计数器 Tᵢ；各块输入可独立准备。", "用 E_K 加密计数器，所得密钥流与本块数据异或。", "输出本块结果，不更新反馈链；可直接处理任意索引的块。"], "PCBC": ["准备本块输入及上一状态 Fᵢ₋₁；第一块取 IV。", "加密先异或 F 再 E_K；解密先 D_K 再异或 F。", "得到输出，再计算 Fᵢ = Pᵢ ⊕ Cᵢ，反馈到下一块。"]};
+function currentFigure(panel){return panel.querySelector('[data-view="'+state.get(panel).direction+'"]');}
+function updateTrace(panel){
+ var s=state.get(panel),fig=currentFigure(panel);panel.querySelectorAll('[data-step]').forEach(function(el){el.classList.remove('is-active');});panel.querySelectorAll('.mode-figure').forEach(function(f){f.classList.remove('is-tracing');});
+ if(s.step>0){fig.classList.add('is-tracing');fig.querySelectorAll('[data-step="'+s.step+'"]').forEach(function(el){el.classList.add('is-active');});}
+ panel.querySelector('[data-trace="prev"]').disabled=s.step===0;panel.querySelector('[data-trace="next"]').disabled=s.step===9;panel.querySelector('[data-trace="reset"]').disabled=s.step===0;
+ panel.querySelector('.step-counter').textContent=s.step===0?'完整图示 / 9 步':s.step+' / 9';
+ var note=panel.querySelector('.trace-note');
+ if(s.step===0){note.textContent='当前显示完整数据流。选择“下一步”，逐项查看输入、运算和输出。';return;}
+ var block=Math.ceil(s.step/3),phase=(s.step-1)%3;
+ note.replaceChildren();var title=document.createElement('strong');title.textContent='第 '+block+' 块 / '+['准备输入','执行运算','输出与反馈'][phase]+'　';note.append(title,document.createTextNode(steps[panel.dataset.mode][phase]));
+}
+function setDirection(panel,d){var s=state.get(panel);s.direction=d;s.step=0;panel.querySelectorAll('[data-view]').forEach(function(f){f.hidden=f.dataset.view!==d;});panel.querySelectorAll('[data-direction]').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.direction===d));});updateTrace(panel);}
+function activate(mode,focus){tabs.forEach(function(t){var yes=t.dataset.modeTarget===mode;t.setAttribute('aria-selected',String(yes));t.tabIndex=yes?0:-1;if(yes&&focus)t.focus();});panels.forEach(function(p){p.hidden=p.dataset.mode!==mode;});}
+panels.forEach(function(panel){state.set(panel,{direction:'enc',step:0});panel.setAttribute('role','tabpanel');panel.setAttribute('aria-labelledby','tab-'+panel.dataset.mode.toLowerCase());setDirection(panel,'enc');panel.querySelectorAll('[data-direction]').forEach(function(b){b.addEventListener('click',function(){setDirection(panel,b.dataset.direction);});});panel.querySelectorAll('[data-trace]').forEach(function(b){b.addEventListener('click',function(){var s=state.get(panel);s.step=b.dataset.trace==='reset'?0:Math.max(0,Math.min(9,s.step+(b.dataset.trace==='next'?1:-1)));updateTrace(panel);});});});
+tabs.forEach(function(tab,i){tab.addEventListener('click',function(){activate(tab.dataset.modeTarget,false);});tab.addEventListener('keydown',function(e){var n;if(e.key==='ArrowRight')n=(i+1)%tabs.length;else if(e.key==='ArrowLeft')n=(i-1+tabs.length)%tabs.length;else if(e.key==='Home')n=0;else if(e.key==='End')n=tabs.length-1;else return;e.preventDefault();activate(tabs[n].dataset.modeTarget,true);});});
+activate('ECB',false);
+function hashMode(){var hash=location.hash.slice(1);if(hash.indexOf('mode-')===0){var mode=hash.slice(5).toUpperCase();if(steps[mode])activate(mode,false);}}
+hashMode();window.addEventListener('hashchange',hashMode);
+document.querySelectorAll('[data-category-filter]').forEach(function(btn){btn.addEventListener('click',function(){var category=btn.dataset.categoryFilter;document.querySelectorAll('[data-category-filter]').forEach(function(b){b.setAttribute('aria-pressed',String(b===btn));});document.querySelectorAll('.algorithm').forEach(function(a){a.hidden=category!=='全部'&&a.dataset.category!==category;});});});
+var search=document.getElementById('algorithm-search'), rows=Array.from(document.querySelectorAll('#quick-table tbody tr'));
+function filterRows(){var words=search.value.toLowerCase().trim().split(/\s+/).filter(Boolean),count=0;rows.forEach(function(row){row.hidden=!words.every(function(word){return row.textContent.toLowerCase().includes(word);});if(!row.hidden)count++;});document.getElementById('search-count').textContent=count+' / '+rows.length+' 项';document.getElementById('search-empty').hidden=count!==0;document.getElementById('quick-table').parentElement.hidden=count===0;}
+search.addEventListener('input',filterRows);document.getElementById('clear-search').addEventListener('click',function(){search.value='';filterRows();search.focus();});filterRows();
+var range=document.getElementById('plain-length');
+function renderPadding(){var n=Number(range.value),pad=8-n%8,total=n+pad,hex=pad.toString(16).toUpperCase().padStart(2,'0'),target=document.getElementById('padding-bytes');document.getElementById('plain-length-value').textContent=n;document.getElementById('padding-explain').textContent=n+' 字节明文，补 '+pad+' 字节：'+Array(pad).fill(hex).join(' ')+'，总长 '+total+' 字节。';target.replaceChildren();target.setAttribute('aria-label',n+' 字节数据，随后 '+pad+' 个 '+hex+' 填充字节');for(var i=0;i<total;i+=8){var group=document.createElement('div');group.className='byte-group';for(var j=i;j<i+8;j++){var byte=document.createElement('span');byte.className='byte'+(j>=n?' pad':'');byte.textContent=j>=n?hex:'00';group.append(byte);}target.append(group);}}
+range.addEventListener('input',renderPadding);renderPadding();
+var detailsState=[];function beforePrint(){detailsState=Array.from(document.querySelectorAll('.sources details')).map(function(d){var old=d.open;d.open=true;return[d,old];});}function afterPrint(){detailsState.forEach(function(pair){pair[0].open=pair[1];});}
+window.addEventListener('beforeprint',beforePrint);window.addEventListener('afterprint',afterPrint);document.getElementById('print').addEventListener('click',function(){window.print();});
+document.querySelectorAll('.mobile-nav a').forEach(function(a){a.addEventListener('click',function(){document.querySelector('.mobile-nav').open=false;});});
+if('IntersectionObserver' in window){var observer=new IntersectionObserver(function(entries){entries.forEach(function(entry){if(entry.isIntersecting){document.querySelectorAll('.sidebar nav a').forEach(function(a){a.setAttribute('aria-current',String(a.hash==='#'+entry.target.id));});}});},{rootMargin:'-15% 0px -65% 0px',threshold:0});document.querySelectorAll('main>.section').forEach(function(s){observer.observe(s);});}
+root.classList.add('js');
+})();
+</script>
+</body>
+</html>
